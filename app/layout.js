@@ -23,17 +23,9 @@ export default function RootLayout({ children }) {
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {children}
             </div>
-            <div style={{ 
-              padding: '10px', 
-              textAlign: 'center', 
-              fontSize: '11px', 
-              color: 'var(--text-secondary)',
-              borderTop: '1px solid var(--border-color)',
-              background: 'var(--bg-secondary)',
-              fontWeight: 500
-            }}>
-              © {new Date().getFullYear()} All rights reserved. Developed by <strong style={{ color: 'var(--accent)' }}>Assudani Developer (9413879444)</strong>
-            </div>
+            <div style={{ textAlign: 'center', padding: '10px 0', fontSize: '11px', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', background: 'var(--bg-primary)' }}>
+            &copy; 2026 All rights reserved. Developed by <span style={{ color: 'var(--accent)', fontWeight: '600' }}>mox rathore (+91 6375 324 945)</span>
+          </div>
           </div>
         </div>
       </body>
