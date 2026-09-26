@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
+import { Phone, Trash2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 
@@ -11,8 +12,10 @@ export default function ChatWindow({
   windowInfo,
   loading,
   onMessageSent,
+  onDeleteContact,
 }) {
   const messagesEndRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   
   useEffect(() => {
@@ -64,7 +67,13 @@ export default function ChatWindow({
         lastDate = msgDate;
       }
 
-      elements.push(<MessageBubble key={msg.id || idx} message={msg} />);
+      elements.push(
+        <MessageBubble 
+          key={msg.id || idx} 
+          message={msg} 
+          onImageClick={setSelectedImage}
+        />
+      );
     });
 
     return elements;
@@ -73,45 +82,64 @@ export default function ChatWindow({
   return (
     <div className="chat-window">
       {}
-      <div className="chat-header">
-        <div className="contact-avatar">
-          {contact.name
-            ? contact.name
-                .split(" ")
-                .map((w) => w[0])
-                .join("")
-                .substring(0, 2)
-            : contact.phone_number?.slice(-2)}
+      <div className="chat-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div className="contact-avatar">
+            {contact.name
+              ? contact.name
+                  .split(" ")
+                  .map((w) => w[0])
+                  .join("")
+                  .substring(0, 2)
+              : contact.phone_number?.slice(-2)}
+          </div>
+          <div className="chat-header-info">
+            <div className="chat-header-name">
+              {contact.name || contact.phone_number}
+            </div>
+            <div className="chat-header-phone">
+              {contact.name ? contact.phone_number : ""}
+              {windowInfo?.open && (
+                <span
+                  style={{
+                    marginLeft: "8px",
+                    color: "var(--accent)",
+                    fontSize: "12px",
+                  }}
+                >
+                  ● Window open
+                </span>
+              )}
+              {windowInfo && !windowInfo.open && (
+                <span
+                  style={{
+                    marginLeft: "8px",
+                    color: "var(--warning-text)",
+                    fontSize: "12px",
+                  }}
+                >
+                  ● Window closed
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="chat-header-info">
-          <div className="chat-header-name">
-            {contact.name || contact.phone_number}
-          </div>
-          <div className="chat-header-phone">
-            {contact.name ? contact.phone_number : ""}
-            {windowInfo?.open && (
-              <span
-                style={{
-                  marginLeft: "8px",
-                  color: "var(--accent)",
-                  fontSize: "12px",
-                }}
-              >
-                ● Window open
-              </span>
-            )}
-            {windowInfo && !windowInfo.open && (
-              <span
-                style={{
-                  marginLeft: "8px",
-                  color: "var(--warning-text)",
-                  fontSize: "12px",
-                }}
-              >
-                ● Window closed
-              </span>
-            )}
-          </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <a
+            href={`tel:${contact.phone_number.startsWith('+') ? contact.phone_number : '+' + contact.phone_number}`}
+            style={{ color: "var(--text-secondary)", cursor: "pointer" }}
+            title={`Call ${contact.name || contact.phone_number}`}
+          >
+            <Phone size={20} />
+          </a>
+          <button
+            onClick={() => onDeleteContact?.(contact.id)}
+            style={{ background: "none", border: "none", color: "var(--warning-text)", cursor: "pointer" }}
+            title="Delete Contact"
+          >
+            <Trash2 size={20} />
+          </button>
         </div>
       </div>
 
@@ -135,6 +163,28 @@ export default function ChatWindow({
         windowInfo={windowInfo}
         onMessageSent={onMessageSent}
       />
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          onClick={() => setSelectedImage(null)}
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.8)", zIndex: 1000,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "40px"
+          }}
+        >
+          <div style={{ position: "relative", maxWidth: "90%", maxHeight: "90%" }}>
+            <button 
+              onClick={() => setSelectedImage(null)}
+              style={{ position: "absolute", top: "-40px", right: "0", background: "none", border: "none", color: "white", fontSize: "24px", cursor: "pointer" }}
+            >
+              ✕
+            </button>
+            <img src={selectedImage} alt="Full screen" style={{ maxWidth: "100%", maxHeight: "80vh", objectFit: "contain", borderRadius: "8px" }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

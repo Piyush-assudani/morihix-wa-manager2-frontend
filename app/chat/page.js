@@ -56,6 +56,24 @@ export default function ChatPage() {
     [fetchMessages]
   );
 
+  // Delete a contact
+  const handleDeleteContact = useCallback(async (contactId) => {
+    if (!window.confirm("Are you sure you want to delete this contact and all their messages?")) return;
+    
+    try {
+      const { deleteContact } = await import("../lib/api");
+      await deleteContact(contactId);
+      setContacts((prev) => prev.filter((c) => c.id !== contactId));
+      if (selectedContact?.id === contactId) {
+        setSelectedContact(null);
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error("Failed to delete contact:", err);
+      alert("Failed to delete contact. Please try again.");
+    }
+  }, [selectedContact]);
+
   // Initial load
   useEffect(() => {
     fetchContacts();
@@ -121,6 +139,10 @@ export default function ChatPage() {
           contact.unread_count = (contact.unread_count || 0) + 1;
         }
 
+        if (msg.direction === "inbound") {
+          contact.last_inbound_time = msg.timestamp;
+        }
+
         
         updated.splice(idx, 1);
         return [contact, ...updated];
@@ -169,6 +191,9 @@ export default function ChatPage() {
         return (c.unread_count || 0) > 0;
       case "read":
         return (c.unread_count || 0) === 0;
+      case "window_open":
+        if (!c.last_inbound_time) return false;
+        return new Date() - new Date(c.last_inbound_time) < 24 * 60 * 60 * 1000;
       default:
         return true;
     }
@@ -194,6 +219,7 @@ export default function ChatPage() {
           windowInfo={windowInfo}
           loading={messagesLoading}
           onMessageSent={handleMessageSent}
+          onDeleteContact={handleDeleteContact}
         />
       ) : (
         <div className="chat-window" style={{ flex: 1 }}>

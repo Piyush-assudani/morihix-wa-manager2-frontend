@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { Check, CheckCheck, X } from "lucide-react";
 
-export default function MessageBubble({ message }) {
+export default function MessageBubble({ message, onImageClick }) {
   const isOutbound = message.direction === "outbound";
 
   const formatTime = (timestamp) => {
@@ -60,9 +60,14 @@ export default function MessageBubble({ message }) {
             {message.media_url.endsWith(".mp4") || message.media_url.endsWith(".webm") || message.media_url?.includes("video/upload") ? (
               <video src={message.media_url} controls className="max-w-full rounded-md mb-2" style={{ maxHeight: "200px" }} />
             ) : (
-              <a href={message.media_url} target="_blank" rel="noopener noreferrer" title="Click to view full image">
-                <img src={message.media_url} alt="Media" className="max-w-full rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity" style={{ maxHeight: "200px", objectFit: "contain" }} />
-              </a>
+              <img 
+                src={message.media_url} 
+                alt="Media" 
+                onClick={() => onImageClick?.(message.media_url)}
+                className="max-w-full rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity" 
+                style={{ maxHeight: "200px", objectFit: "contain" }} 
+                title="Click to view full image"
+              />
             )}
           </div>
         )}

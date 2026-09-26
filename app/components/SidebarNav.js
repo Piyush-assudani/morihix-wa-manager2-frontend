@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { MessageCircle, Megaphone, Activity, Users, Reply, Settings, Image as ImageIcon, LayoutTemplate } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { MessageCircle, Megaphone, Activity, Users, Reply, Settings, Image as ImageIcon, LayoutTemplate, LogOut } from "lucide-react";
 
 export default function SidebarNav() {
   const pathname = usePathname();
+  const router = useRouter();
 
-  
   if (pathname === "/login") {
     return null;
   }
@@ -20,6 +20,11 @@ export default function SidebarNav() {
     { href: "/media", icon: ImageIcon, label: "Media Library" },
     { href: "/templates", icon: LayoutTemplate, label: "Templates" },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
 
   return (
     <nav className="sidebar-nav">
@@ -47,6 +52,10 @@ export default function SidebarNav() {
 
       <div className="nav-item" title="API Health">
         <Activity size={20} />
+      </div>
+
+      <div className="nav-item text-red-500 hover:text-red-700" title="Logout" onClick={handleLogout} style={{ color: "var(--warning-text)", cursor: "pointer", marginTop: "8px" }}>
+        <LogOut size={22} />
       </div>
     </nav>
   );

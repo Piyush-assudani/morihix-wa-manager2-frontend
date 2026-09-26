@@ -7,6 +7,7 @@ const FILTERS = [
   { key: "all", label: "All" },
   { key: "unread", label: "Unread" },
   { key: "read", label: "Read" },
+  { key: "window_open", label: "Window Open" },
 ];
 
 export default function ChatSidebar({
