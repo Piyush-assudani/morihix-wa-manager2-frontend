@@ -27,9 +27,25 @@ export default function RootLayout({ children }) {
             <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               {children}
             </div>
-            <div style={{ textAlign: 'center', padding: '8px 0', fontSize: '11px', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', background: 'var(--bg-primary)', flexShrink: 0 }}>
-            &copy; 2026 All rights reserved. Developed by <span style={{ color: 'var(--accent)', fontWeight: '600' }}>mox rathore (+91 6375 324 945)</span>
-          </div>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              padding: '8px 20px', 
+              fontSize: '11px', 
+              color: 'var(--text-muted)', 
+              borderTop: '1px solid var(--border-color)', 
+              background: 'var(--bg-primary)', 
+              flexShrink: 0 
+            }}>
+              <div style={{ flex: 1 }}></div>
+              <div style={{ textAlign: 'center', flex: 3 }}>
+                &copy; 2026 All rights reserved. Developed by <span style={{ color: 'var(--accent)', fontWeight: '600' }}>mox rathore (+91 6375 324 945)</span>
+              </div>
+              <div style={{ flex: 1, textAlign: 'right', fontSize: '11px', color: 'var(--text-muted)', opacity: 0.85, fontWeight: '500' }}>
+                v1.0.1
+              </div>
+            </div>
           </div>
         </div>
       </body>
