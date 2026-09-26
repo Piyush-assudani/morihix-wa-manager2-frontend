@@ -1,6 +1,9 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || "https://wpautomation.moxrathore.com";
+let SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || "https://wpautomation.moxrathore.com";
+if (typeof window !== "undefined" && window.location.hostname !== "localhost" && SOCKET_URL.includes("localhost")) {
+  SOCKET_URL = "https://wpautomation.moxrathore.com";
+}
 
 let socket = null;
 

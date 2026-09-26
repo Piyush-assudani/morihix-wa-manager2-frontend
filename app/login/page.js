@@ -18,7 +18,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://wpautomation.moxrathore.com";
+      let apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://wpautomation.moxrathore.com";
+      if (apiUrl.includes("localhost") && typeof window !== "undefined" && window.location.hostname !== "localhost") {
+        apiUrl = "https://wpautomation.moxrathore.com";
+      }
       const res = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
