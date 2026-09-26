@@ -45,13 +45,21 @@ export default function ChatPage() {
 
   // Select a contact
   const handleSelectContact = useCallback(
-    (contact) => {
+    async (contact) => {
       setSelectedContact(contact);
       fetchMessages(contact.id);
       // Clear unread count when opening chat
       setContacts((prev) => 
         prev.map((c) => c.id === contact.id ? { ...c, unread_count: 0 } : c)
       );
+
+      // Mark messages as read in backend
+      try {
+        const { markMessagesAsRead } = await import("../lib/api");
+        await markMessagesAsRead(contact.id);
+      } catch (err) {
+        console.error("Failed to mark messages as read:", err);
+      }
     },
     [fetchMessages]
   );
@@ -101,6 +109,13 @@ export default function ChatPage() {
               new Date(msg.timestamp).getTime() + 24 * 60 * 60 * 1000
             ).toISOString(),
           }));
+          
+          // Automatically mark it as read in backend
+          import("../lib/api").then(({ markMessagesAsRead }) => {
+            markMessagesAsRead(msg.contact_id).catch(err => 
+              console.error("Failed to mark new message as read:", err)
+            );
+          });
         }
       }
 

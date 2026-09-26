@@ -29,6 +29,9 @@ export const getListContacts = (id) => api.get(`/api/contact_lists/${id}/contact
 export const getMessages = (contactId, limit = 100, offset = 0) =>
   api.get(`/api/messages/${contactId}`, { params: { limit, offset } });
 
+export const markMessagesAsRead = (contactId) =>
+  api.put(`/api/messages/${contactId}/read`);
+
 export const sendMessage = (contactId, message) =>
   api.post(`/api/messages/${contactId}`, { message });
 
