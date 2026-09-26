@@ -20,7 +20,9 @@ export default function ChatWindow({
   }, [messages]);
 
   const formatDateLabel = (date) => {
+    if (!date) return "Unknown Date";
     const d = new Date(date);
+    if (isNaN(d.getTime())) return "Unknown Date";
     if (isToday(d)) return "Today";
     if (isYesterday(d)) return "Yesterday";
     return format(d, "MMMM d, yyyy");

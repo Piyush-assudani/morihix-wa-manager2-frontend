@@ -18,7 +18,9 @@ export default function ContactItem({ contact, isActive, onClick }) {
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     try {
-      return formatDistanceToNow(new Date(timestamp), { addSuffix: false });
+      const d = new Date(timestamp);
+      if (isNaN(d.getTime())) return "";
+      return formatDistanceToNow(d, { addSuffix: false });
     } catch {
       return "";
     }

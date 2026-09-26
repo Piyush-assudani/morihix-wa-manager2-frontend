@@ -7,8 +7,11 @@ export default function MessageBubble({ message }) {
   const isOutbound = message.direction === "outbound";
 
   const formatTime = (timestamp) => {
+    if (!timestamp) return "";
     try {
-      return format(new Date(timestamp), "HH:mm");
+      const d = new Date(timestamp);
+      if (isNaN(d.getTime())) return "";
+      return format(d, "HH:mm");
     } catch {
       return "";
     }

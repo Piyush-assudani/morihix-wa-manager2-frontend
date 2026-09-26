@@ -334,7 +334,7 @@ body {
   min-width: 22px;
   height: 22px;
   padding: 0 7px;
-  background: var(--secondary-accent);
+  background: #25D366; /* WhatsApp Green */
   color: white;
   border-radius: 11px;
   font-size: 11px;
