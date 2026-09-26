@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getContacts, getMessages } from "../lib/api";
+import { getContacts, getMessages, markMessagesAsRead } from "../lib/api";
 import { getSocket } from "../lib/socket";
 import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
@@ -50,12 +50,11 @@ export default function ChatPage() {
       fetchMessages(contact.id);
       // Clear unread count when opening chat
       setContacts((prev) => 
-        prev.map((c) => c.id === contact.id ? { ...c, unread_count: 0 } : c)
+        prev.map((c) => c.id == contact.id ? { ...c, unread_count: 0 } : c)
       );
 
       // Mark messages as read in backend
       try {
-        const { markMessagesAsRead } = await import("../lib/api");
         await markMessagesAsRead(contact.id);
       } catch (err) {
         console.error("Failed to mark messages as read:", err);
@@ -111,11 +110,9 @@ export default function ChatPage() {
           }));
           
           // Automatically mark it as read in backend
-          import("../lib/api").then(({ markMessagesAsRead }) => {
-            markMessagesAsRead(msg.contact_id).catch(err => 
-              console.error("Failed to mark new message as read:", err)
-            );
-          });
+          markMessagesAsRead(msg.contact_id).catch(err => 
+            console.error("Failed to mark new message as read:", err)
+          );
         }
       }
 

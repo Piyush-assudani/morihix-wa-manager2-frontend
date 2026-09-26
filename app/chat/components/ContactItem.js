@@ -58,9 +58,9 @@ export default function ContactItem({ contact, isActive, onClick }) {
             {truncate(contact.last_message) || "No messages yet"}
           </span>
 
-          {contact.unread_count > 0 && (
+          {Number(contact.unread_count) > 0 ? (
             <span className="unread-badge">{contact.unread_count}</span>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
