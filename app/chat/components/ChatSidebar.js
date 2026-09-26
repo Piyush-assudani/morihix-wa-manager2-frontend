@@ -3,12 +3,20 @@
 import { Search } from "lucide-react";
 import ContactItem from "./ContactItem";
 
+const FILTERS = [
+  { key: "all", label: "All" },
+  { key: "unread", label: "Unread" },
+  { key: "read", label: "Read" },
+];
+
 export default function ChatSidebar({
   contacts,
   selectedContact,
   onSelectContact,
   searchQuery,
   onSearchChange,
+  activeFilter,
+  onFilterChange,
   loading,
 }) {
   return (
@@ -23,6 +31,17 @@ export default function ChatSidebar({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
+        </div>
+        <div className="chat-filters">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              className={`chat-filter-btn ${activeFilter === f.key ? "active" : ""}`}
+              onClick={() => onFilterChange(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -42,6 +61,8 @@ export default function ChatSidebar({
             <p style={{ fontSize: "14px" }}>
               {searchQuery
                 ? "No contacts match your search"
+                : activeFilter !== "all"
+                ? `No ${activeFilter} contacts`
                 : "No contacts yet. Incoming messages will appear here."}
             </p>
           </div>

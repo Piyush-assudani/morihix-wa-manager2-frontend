@@ -28,14 +28,25 @@ export default function CampaignRecipientsPage() {
     if (id) fetchRecipients();
   }, [id]);
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, errorMessage) => {
     switch (status) {
       case "read":
-        return <span style={{ color: "#34B7F1", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> {status}</span>;
+        return <span style={{ color: "#34B7F1", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Read</span>;
       case "delivered":
-        return <span style={{ color: "var(--status-delivered)", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> {status}</span>;
-      case "failed":
-        return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> {status}</span>;
+        return <span style={{ color: "var(--status-delivered)", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Delivered</span>;
+      case "failed": {
+        let reason = "Failed";
+        if (errorMessage) {
+          if (errorMessage.toLowerCase().includes("undeliverable")) {
+            reason = "Not on WhatsApp";
+          } else if (errorMessage.toLowerCase().includes("ecosystem")) {
+            reason = "Spam Filtered";
+          } else {
+            reason = errorMessage.length > 30 ? errorMessage.substring(0, 30) + "..." : errorMessage;
+          }
+        }
+        return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }} title={errorMessage || "Failed"}><XCircle size={14} /> {reason}</span>;
+      }
       default:
         return <span style={{ color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}><Clock size={14} /> {status}</span>;
     }
@@ -86,7 +97,7 @@ export default function CampaignRecipientsPage() {
                       +{r.phone_number}
                     </td>
                     <td style={{ padding: "16px 24px", fontSize: "14px", textTransform: "capitalize" }}>
-                      {getStatusBadge(r.status)}
+                      {getStatusBadge(r.status, r.error_message)}
                     </td>
                     <td style={{ padding: "16px 24px", color: "var(--text-muted)", fontSize: "14px" }}>
                       {format(new Date(r.timestamp), "MMM d, h:mm a")}

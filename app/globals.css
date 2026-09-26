@@ -238,6 +238,35 @@ body {
   color: var(--accent);
 }
 
+.chat-filters {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0 0;
+}
+
+.chat-filter-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chat-filter-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.chat-filter-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
 .contact-list {
   flex: 1;
   overflow-y: auto;

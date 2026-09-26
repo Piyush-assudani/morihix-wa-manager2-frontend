@@ -15,6 +15,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
 
   // Fetch contacts
   const fetchContacts = useCallback(async () => {
@@ -152,13 +153,25 @@ export default function ChatPage() {
 
   
   const filteredContacts = contacts.filter((c) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      c.phone_number?.toLowerCase().includes(q) ||
-      c.name?.toLowerCase().includes(q) ||
-      c.last_message?.toLowerCase().includes(q)
-    );
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = 
+        c.phone_number?.toLowerCase().includes(q) ||
+        c.name?.toLowerCase().includes(q) ||
+        c.last_message?.toLowerCase().includes(q);
+      if (!matchesSearch) return false;
+    }
+
+    // Category filter
+    switch (activeFilter) {
+      case "unread":
+        return (c.unread_count || 0) > 0;
+      case "read":
+        return (c.unread_count || 0) === 0;
+      default:
+        return true;
+    }
   });
 
   return (
@@ -169,6 +182,8 @@ export default function ChatPage() {
         onSelectContact={handleSelectContact}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
         loading={loading}
       />
 
