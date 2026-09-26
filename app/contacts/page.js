@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Upload, Users, FileSpreadsheet, X, CheckCircle2, Trash2 } from "lucide-react";
+import { Upload, Users, FileSpreadsheet, X, CheckCircle2, Trash2, Plus } from "lucide-react";
 import Link from "next/link";
 import api, { deleteContactList } from "../lib/api";
 import { format } from "date-fns";
@@ -10,6 +10,8 @@ export default function ContactsPage() {
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [manualListName, setManualListName] = useState("");
   
   
   const fileInputRef = useRef(null);
@@ -106,17 +108,53 @@ export default function ContactsPage() {
     }
   };
 
+  const handleManualCreate = async (e) => {
+    e.preventDefault();
+    if (!manualListName.trim()) {
+      setError("Please provide a name for the list");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      await api.post("/api/contact_lists/manual", { name: manualListName.trim() });
+      setSuccess("Empty list created successfully!");
+      fetchLists();
+      
+      setTimeout(() => {
+        setShowManualModal(false);
+        setSuccess(null);
+        setManualListName("");
+      }, 1500);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to create list");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
         <h1 className="page-title">Contact Lists</h1>
-        <button 
-          className="btn-primary" 
-          onClick={() => setShowUploadModal(true)}
-        >
-          <Upload size={18} />
-          Upload New Sheet
-        </button>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button 
+            className="btn-secondary" 
+            onClick={() => setShowManualModal(true)}
+          >
+            <Plus size={18} />
+            Create Empty List
+          </button>
+          <button 
+            className="btn-primary" 
+            onClick={() => setShowUploadModal(true)}
+          >
+            <Upload size={18} />
+            Upload New Sheet
+          </button>
+        </div>
       </div>
 
       <div className="page-content">
@@ -131,13 +169,20 @@ export default function ContactsPage() {
             </div>
             <h2>No contact lists yet</h2>
             <p>Upload an Excel or CSV file to save your contacts. You can select these lists when running campaigns.</p>
-            <button 
-              className="btn-primary" 
-              style={{ marginTop: "16px" }}
-              onClick={() => setShowUploadModal(true)}
-            >
-              Upload Sheet
-            </button>
+            <div style={{ display: "flex", gap: "12px", marginTop: "16px", justifyContent: "center" }}>
+              <button 
+                className="btn-secondary" 
+                onClick={() => setShowManualModal(true)}
+              >
+                Create Empty List
+              </button>
+              <button 
+                className="btn-primary" 
+                onClick={() => setShowUploadModal(true)}
+              >
+                Upload Sheet
+              </button>
+            </div>
           </div>
         ) : (
           <div className="card-grid">
@@ -295,6 +340,70 @@ export default function ContactsPage() {
                   disabled={uploading || !listName.trim() || !file}
                 >
                   {uploading ? "Saving..." : "Save List"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Create Modal */}
+      {showManualModal && (
+        <div className="modal-overlay" onClick={() => !uploading && setShowManualModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <h2 className="modal-title" style={{ margin: 0 }}>Create Empty List</h2>
+              <button 
+                onClick={() => setShowManualModal(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                disabled={uploading}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {error && (
+              <div className="window-warning">
+                <span className="window-warning-text">{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div style={{ padding: "12px", background: "var(--bubble-outbound)", color: "var(--secondary-accent)", borderRadius: "12px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <CheckCircle2 size={18} />
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleManualCreate}>
+              <div className="form-group">
+                <label className="form-label">List Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g., Manual Contacts 2026"
+                  value={manualListName}
+                  onChange={(e) => setManualListName(e.target.value)}
+                  disabled={uploading}
+                  required
+                />
+              </div>
+
+              <div className="modal-actions" style={{ marginTop: "24px" }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowManualModal(false)}
+                  disabled={uploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={uploading || !manualListName.trim()}
+                >
+                  {uploading ? "Creating..." : "Create List"}
                 </button>
               </div>
             </form>
