@@ -11,6 +11,10 @@ const inter = Inter({
 export const metadata = {
   title: "MAA AAINATH GOU SEVA SAMITI BALOTRA",
   description: "WhatsApp Automation Dashboard",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {
