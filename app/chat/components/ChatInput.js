@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Send, AlertTriangle } from "lucide-react";
+import { Send, AlertTriangle, LayoutTemplate } from "lucide-react";
 import { sendMessage, sendTemplate, getTemplates } from "../../lib/api";
 
 export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
@@ -115,6 +115,15 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
           title="Send message"
         >
           <Send size={18} />
+        </button>
+        <button
+          className="send-btn"
+          onClick={openTemplateModal}
+          disabled={templateSending}
+          title="Send Template"
+          style={{ marginLeft: "8px", background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+        >
+          <LayoutTemplate size={18} />
         </button>
       </div>
 

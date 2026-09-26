@@ -47,6 +47,10 @@ export default function ChatPage() {
     (contact) => {
       setSelectedContact(contact);
       fetchMessages(contact.id);
+      // Clear unread count when opening chat
+      setContacts((prev) => 
+        prev.map((c) => c.id === contact.id ? { ...c, unread_count: 0 } : c)
+      );
     },
     [fetchMessages]
   );
@@ -63,7 +67,10 @@ export default function ChatPage() {
     const handleNewMessage = (msg) => {
       // Update messages if viewing this contact's chat
       if (selectedContact && msg.contact_id === selectedContact.id) {
-        setMessages((prev) => [...prev, msg]);
+        setMessages((prev) => {
+          if (prev.some(m => m.id === msg.id || (msg.meta_message_id && m.meta_message_id === msg.meta_message_id))) return prev;
+          return [...prev, msg];
+        });
 
         // If inbound, update window info
         if (msg.direction === "inbound") {
