@@ -17,11 +17,9 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
+    const apiUrl = "https://wpautomation.moxrathore.com";
+
     try {
-      let apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://wpautomation.moxrathore.com";
-      if (apiUrl.includes("localhost") && typeof window !== "undefined" && window.location.hostname !== "localhost") {
-        apiUrl = "https://wpautomation.moxrathore.com";
-      }
       const res = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,7 +35,8 @@ export default function LoginPage() {
         setError(data.error || "Login failed");
       }
     } catch (err) {
-      setError("Network error. Please make sure the backend server is running.");
+      console.error("Login fetch error:", err);
+      setError(`Connection error: ${err.message}`);
     } finally {
       setLoading(false);
     }

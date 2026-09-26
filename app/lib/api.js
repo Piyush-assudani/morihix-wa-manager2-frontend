@@ -1,9 +1,6 @@
 import axios from "axios";
 
-let API_URL = process.env.NEXT_PUBLIC_API_URL || "https://wpautomation.moxrathore.com";
-if (typeof window !== "undefined" && window.location.hostname !== "localhost" && API_URL.includes("localhost")) {
-  API_URL = "https://wpautomation.moxrathore.com";
-}
+const API_URL = "https://wpautomation.moxrathore.com";
 
 const api = axios.create({
   baseURL: API_URL,
