@@ -30,8 +30,9 @@ export default function CampaignRecipientsPage() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "delivered":
       case "read":
+        return <span style={{ color: "#34B7F1", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> {status}</span>;
+      case "delivered":
         return <span style={{ color: "var(--status-delivered)", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> {status}</span>;
       case "failed":
         return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> {status}</span>;
