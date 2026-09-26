@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Send, AlertTriangle, LayoutTemplate } from "lucide-react";
-import { sendMessage, sendTemplate, getTemplates } from "../../lib/api";
+import { Send, AlertTriangle, LayoutTemplate, Paperclip } from "lucide-react";
+import { sendMessage, sendTemplate, getTemplates, sendMedia } from "../../lib/api";
 
 export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const [text, setText] = useState("");
@@ -39,6 +39,23 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || isWindowClosed) return;
+    
+    setSending(true);
+    try {
+      const res = await sendMedia(contactId, file);
+      onMessageSent(res.data);
+    } catch (err) {
+      console.error("Media send failed:", err);
+      alert(err.response?.data?.error || "Failed to send media");
+    } finally {
+      setSending(false);
+      e.target.value = null; // Reset input
     }
   };
 
@@ -116,6 +133,24 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
         >
           <Send size={18} />
         </button>
+        <label
+          className="send-btn"
+          title="Send Media"
+          style={{ 
+            marginLeft: "8px", background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)", 
+            cursor: isWindowClosed || sending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            opacity: isWindowClosed || sending ? 0.6 : 1
+          }}
+        >
+          <Paperclip size={18} />
+          <input 
+            type="file" 
+            style={{ display: "none" }} 
+            onChange={handleFileChange}
+            accept="image/*,video/*,audio/*,application/pdf"
+            disabled={isWindowClosed || sending}
+          />
+        </label>
         <button
           className="send-btn"
           onClick={openTemplateModal}

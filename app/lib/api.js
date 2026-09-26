@@ -30,6 +30,14 @@ export const getMessages = (contactId, limit = 100, offset = 0) =>
 export const sendMessage = (contactId, message) =>
   api.post(`/api/messages/${contactId}`, { message });
 
+export const sendMedia = (contactId, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return api.post(`/api/messages/${contactId}/media`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
 export const sendTemplate = (contactId, templateName, languageCode = "en_US") =>
   api.post(`/api/messages/${contactId}/template`, {
     template_name: templateName,
