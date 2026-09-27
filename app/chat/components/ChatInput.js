@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Send, AlertTriangle, LayoutTemplate, Paperclip } from "lucide-react";
 import { sendMessage, sendTemplate, getTemplates, sendMedia } from "../../lib/api";
 
@@ -10,6 +10,8 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState("");
+  const filePreviewUrlRef = useRef("");
   const [templateName, setTemplateName] = useState("");
   const [languageCode, setLanguageCode] = useState("en_US");
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -19,6 +21,20 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   const isWindowClosed = windowInfo && !windowInfo.open;
+
+  useEffect(() => () => {
+    if (filePreviewUrlRef.current) URL.revokeObjectURL(filePreviewUrlRef.current);
+  }, []);
+
+  const clearSelectedFile = () => {
+    if (filePreviewUrlRef.current) {
+      URL.revokeObjectURL(filePreviewUrlRef.current);
+      filePreviewUrlRef.current = "";
+    }
+    setFilePreviewUrl("");
+    setSelectedFile(null);
+    setShowFileModal(false);
+  };
 
   const handleSend = async () => {
     if (!text.trim() || sending || isWindowClosed) return;
@@ -50,6 +66,10 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
     const file = e.target.files?.[0];
     if (!file || isWindowClosed) return;
     
+    if (filePreviewUrlRef.current) URL.revokeObjectURL(filePreviewUrlRef.current);
+    const previewUrl = URL.createObjectURL(file);
+    filePreviewUrlRef.current = previewUrl;
+    setFilePreviewUrl(previewUrl);
     setSelectedFile(file);
     setShowFileModal(true);
     e.target.value = null; // Reset input
@@ -68,7 +88,7 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
       alert(err.response?.data?.error || "Failed to send media");
     } finally {
       setSending(false);
-      setSelectedFile(null);
+      clearSelectedFile();
     }
   };
 
@@ -323,7 +343,7 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
       {showFileModal && (
         <div
           className="modal-overlay"
-          onClick={() => setShowFileModal(false)}
+          onClick={clearSelectedFile}
         >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="modal-title">Send Media/Document</h3>
@@ -336,11 +356,48 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
                   {(selectedFile?.size / 1024 / 1024).toFixed(2)} MB
                 </span>
               </div>
+              {selectedFile && filePreviewUrl && (
+                <div style={{ marginTop: "12px", padding: "12px", background: "var(--bg-primary)", borderRadius: "8px", border: "1px solid var(--border-color)", textAlign: "center" }}>
+                  {selectedFile.type.startsWith("image/") ? (
+                    <img
+                      src={filePreviewUrl}
+                      alt={`Preview of ${selectedFile.name}`}
+                      style={{ display: "block", maxWidth: "100%", maxHeight: "280px", objectFit: "contain", margin: "0 auto", borderRadius: "6px" }}
+                    />
+                  ) : selectedFile.type.startsWith("video/") ? (
+                    <video
+                      src={filePreviewUrl}
+                      controls
+                      style={{ display: "block", maxWidth: "100%", maxHeight: "280px", margin: "0 auto", borderRadius: "6px" }}
+                    />
+                  ) : selectedFile.type.startsWith("audio/") ? (
+                    <audio src={filePreviewUrl} controls style={{ width: "100%" }} />
+                  ) : selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf") ? (
+                    <iframe
+                      src={filePreviewUrl}
+                      title={`Preview of ${selectedFile.name}`}
+                      style={{ width: "100%", height: "280px", border: 0, borderRadius: "6px" }}
+                    />
+                  ) : (
+                    <div style={{ padding: "24px 12px", color: "var(--text-secondary)" }}>
+                      <Paperclip size={32} style={{ margin: "0 auto 8px" }} />
+                      <p>Preview is not available for this file type.</p>
+                      <a
+                        href={filePreviewUrl}
+                        download={selectedFile.name}
+                        style={{ display: "inline-block", marginTop: "8px", color: "var(--accent)" }}
+                      >
+                        Open or download preview
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="modal-actions" style={{ marginTop: "24px" }}>
               <button
                 className="btn-secondary"
-                onClick={() => setShowFileModal(false)}
+                onClick={clearSelectedFile}
               >
                 Cancel
               </button>

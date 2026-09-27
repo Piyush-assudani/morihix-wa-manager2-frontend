@@ -13,6 +13,7 @@ export default function ChatWindow({
   windowInfo,
   loading,
   onMessageSent,
+  onMessageDeleted,
   onDeleteContact,
 }) {
   const chatMessagesRef = useRef(null);
@@ -21,6 +22,9 @@ export default function ChatWindow({
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [lastSeenMessageCount, setLastSeenMessageCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [pendingDeleteMessage, setPendingDeleteMessage] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const hasNewMessages =
     messages.length > lastSeenMessageCount && !isAtBottom;
 
@@ -59,21 +63,29 @@ export default function ChatWindow({
   };
 
   const formatDateLabel = (date) => {
-    if (!date) return "Unknown Date";
+    if (!date) return "Older messages (date unavailable)";
     const d = new Date(date);
-    if (isNaN(d.getTime()) || d.getTime() <= 0) return "Unknown Date";
+    if (isNaN(d.getTime()) || d.getTime() <= 0) {
+      return "Older messages (date unavailable)";
+    }
     if (isToday(d)) return "Today";
     if (isYesterday(d)) return "Yesterday";
     return format(d, "MMMM d, yyyy");
   };
 
-  const handleDeleteMessage = async (msgId) => {
-    if (!window.confirm("Are you sure you want to delete this message?")) return;
+  const handleDeleteMessage = async () => {
+    if (!pendingDeleteMessage || deleteLoading) return;
+    setDeleteLoading(true);
+    setDeleteError("");
     try {
-      await deleteMessage(msgId);
+      const result = await deleteMessage(pendingDeleteMessage.id);
+      onMessageDeleted?.(result.data.id || pendingDeleteMessage.id);
+      setPendingDeleteMessage(null);
     } catch (err) {
       console.error("Delete message failed", err);
-      alert("Failed to delete message");
+      setDeleteError(err.response?.data?.error || "Message delete nahi hua. Dobara try karein.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -99,7 +111,19 @@ export default function ChatWindow({
     const elements = [];
     let lastDate = null;
 
-    messages.forEach((msg, idx) => {
+    const chronologicalMessages = [...messages].sort((a, b) => {
+      const timeA = new Date(a.timestamp).getTime();
+      const timeB = new Date(b.timestamp).getTime();
+      const validA = Number.isFinite(timeA) && timeA > 0;
+      const validB = Number.isFinite(timeB) && timeB > 0;
+
+      if (!validA && validB) return -1;
+      if (validA && !validB) return 1;
+      if (!validA && !validB) return 0;
+      return timeA - timeB;
+    });
+
+    chronologicalMessages.forEach((msg, idx) => {
       const msgDate = new Date(msg.timestamp);
 
       if (!lastDate || !isSameDay(lastDate, msgDate)) {
@@ -118,7 +142,10 @@ export default function ChatWindow({
           key={msg.id || idx} 
           message={msg} 
           onImageClick={setSelectedImage}
-          onDelete={handleDeleteMessage}
+          onDelete={() => {
+            setDeleteError("");
+            setPendingDeleteMessage(msg);
+          }}
         />
       );
     });
@@ -243,6 +270,41 @@ export default function ChatWindow({
               ✕
             </button>
             <img src={selectedImage} alt="Full screen" style={{ maxWidth: "100%", maxHeight: "80vh", objectFit: "contain", borderRadius: "8px" }} />
+          </div>
+        </div>
+      )}
+      {pendingDeleteMessage && (
+        <div
+          className="modal-overlay"
+          onClick={() => !deleteLoading && setPendingDeleteMessage(null)}
+        >
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="delete-message-title" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-title" id="delete-message-title">Delete this message?</h3>
+            <p style={{ color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              Are you sure you want to delete this message? This action cannot be undone.
+            </p>
+            {deleteError && (
+              <p role="alert" style={{ color: "var(--warning-text)", marginTop: "12px" }}>
+                {deleteError}
+              </p>
+            )}
+            <div className="modal-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => setPendingDeleteMessage(null)}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleDeleteMessage}
+                disabled={deleteLoading}
+                style={{ background: "var(--warning-text)" }}
+              >
+                {deleteLoading ? "Deleting..." : "Yes, delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

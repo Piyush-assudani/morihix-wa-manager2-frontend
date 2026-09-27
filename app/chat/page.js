@@ -7,6 +7,14 @@ import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
 import { MessageCircle } from "lucide-react";
 
+const isSameMessage = (existing, incoming) =>
+  (existing.id != null &&
+    incoming.id != null &&
+    String(existing.id) === String(incoming.id)) ||
+  (existing.meta_message_id &&
+    incoming.meta_message_id &&
+    existing.meta_message_id === incoming.meta_message_id);
+
 export default function ChatPage() {
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
@@ -103,7 +111,7 @@ export default function ChatPage() {
         String(msg.contact_id) === String(selectedContact.id);
       if (isSelectedContact) {
         setMessages((prev) => {
-          if (prev.some(m => m.id === msg.id || (msg.meta_message_id && m.meta_message_id === msg.meta_message_id))) return prev;
+          if (prev.some((existing) => isSameMessage(existing, msg))) return prev;
           return [...prev, msg];
         });
 
@@ -178,7 +186,9 @@ export default function ChatPage() {
     };
 
     const handleMessageDeleted = (data) => {
-      setMessages((prev) => prev.filter((m) => m.id !== data.id));
+      setMessages((prev) =>
+        prev.filter((message) => String(message.id) !== String(data.id))
+      );
     };
 
     socket.on("new_message", handleNewMessage);
@@ -193,9 +203,20 @@ export default function ChatPage() {
   }, [markContactRead, selectedContact]);
 
   
-  const handleMessageSent = (newMsg) => {
-    setMessages((prev) => [...prev, newMsg]);
-  };
+  const handleMessageSent = useCallback((newMsg) => {
+    setMessages((prev) =>
+      prev.some((existing) => isSameMessage(existing, newMsg))
+        ? prev
+        : [...prev, newMsg]
+    );
+  }, []);
+
+  const handleMessageDeleted = useCallback((messageId) => {
+    setMessages((prev) =>
+      prev.filter((message) => String(message.id) !== String(messageId))
+    );
+    fetchContacts();
+  }, [fetchContacts]);
 
   
   const filteredContacts = contacts.filter((c) => {
@@ -244,6 +265,7 @@ export default function ChatPage() {
           windowInfo={windowInfo}
           loading={messagesLoading}
           onMessageSent={handleMessageSent}
+          onMessageDeleted={handleMessageDeleted}
           onDeleteContact={handleDeleteContact}
         />
       ) : (
