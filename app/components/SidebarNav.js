@@ -61,6 +61,8 @@ export default function SidebarNav() {
         <div className="nav-item text-red-500 hover:text-red-700" title="Logout" onClick={handleLogout} style={{ color: "var(--warning-text)", cursor: "pointer", margin: "8px 0" }}>
           <LogOut size={22} />
         </div>
+
+        <span className="nav-version">v1.0.1</span>
       </nav>
 
       <AccountHealthModal 

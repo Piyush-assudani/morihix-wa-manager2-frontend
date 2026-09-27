@@ -42,9 +42,7 @@ export default function RootLayout({ children }) {
               <div style={{ textAlign: 'center', flex: 3 }}>
                 &copy; 2026 All rights reserved. Developed by <span style={{ color: 'var(--accent)', fontWeight: '600' }}>mox rathore (+91 6375 324 945)</span>
               </div>
-              <div style={{ flex: 1, textAlign: 'right', fontSize: '11px', color: 'var(--text-muted)', opacity: 0.85, fontWeight: '500' }}>
-                v1.0.1
-              </div>
+              <div style={{ flex: 1 }}></div>
             </div>
           </div>
         </div>
