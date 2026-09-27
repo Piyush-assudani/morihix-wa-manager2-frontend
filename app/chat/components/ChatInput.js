@@ -192,7 +192,7 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
             type="file" 
             style={{ display: "none" }} 
             onChange={handleFileChange}
-            accept="image/*,video/*,audio/*,application/pdf"
+            accept="*/*"
             disabled={isWindowClosed || sending}
           />
         </label>
