@@ -1,10 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { UserCog, Eye, EyeOff, Save, CheckCircle2 } from "lucide-react";
-import api from "../lib/api";
+import { useEffect, useState } from "react";
+import { Activity, AlertTriangle, CheckCircle2, Eye, EyeOff, RefreshCw, Save, ShieldAlert, UserCog } from "lucide-react";
+import api, { getAccountHealth } from "../lib/api";
+
+const getTierDescription = (tier) => {
+  const tierDescriptions = {
+    TIER_250: "250 business-initiated conversations per rolling 24 hours",
+    TIER_1K: "1,000 business-initiated conversations per rolling 24 hours",
+    TIER_10K: "10,000 business-initiated conversations per rolling 24 hours",
+    TIER_100K: "100,000 business-initiated conversations per rolling 24 hours",
+    TIER_UNLIMITED: "Unlimited business-initiated conversations",
+  };
+
+  return tierDescriptions[tier?.toUpperCase()] || "Limit supplied by Meta";
+};
+
+const getQualityStyle = (quality) => {
+  switch (quality?.toUpperCase()) {
+    case "GREEN":
+      return { color: "#15803d", background: "#dcfce7", Icon: CheckCircle2 };
+    case "YELLOW":
+      return { color: "#a16207", background: "#fef9c3", Icon: AlertTriangle };
+    case "RED":
+      return { color: "#b91c1c", background: "#fee2e2", Icon: ShieldAlert };
+    default:
+      return { color: "var(--text-secondary)", background: "var(--bg-tertiary)", Icon: Activity };
+  }
+};
 
 export default function SettingsPage() {
+  const [metaHealth, setMetaHealth] = useState(null);
+  const [healthLoading, setHealthLoading] = useState(true);
+  const [healthError, setHealthError] = useState("");
   const [currentUsername, setCurrentUsername] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newUsername, setNewUsername] = useState("");
@@ -16,6 +44,40 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getAccountHealth()
+      .then((res) => {
+        if (isMounted) setMetaHealth(res.data);
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setHealthError(err.response?.data?.error || "Failed to load Meta account health.");
+        }
+      })
+      .finally(() => {
+        if (isMounted) setHealthLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const refreshMetaHealth = async () => {
+    setHealthLoading(true);
+    setHealthError("");
+    try {
+      const res = await getAccountHealth();
+      setMetaHealth(res.data);
+    } catch (err) {
+      setHealthError(err.response?.data?.error || "Failed to load Meta account health.");
+    } finally {
+      setHealthLoading(false);
+    }
+  };
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -48,7 +110,85 @@ export default function SettingsPage() {
         <h1 className="page-title">Profile Settings</h1>
       </div>
 
-      <div className="page-content" style={{ maxWidth: "600px" }}>
+      <div className="page-content" style={{ maxWidth: "700px" }}>
+        <section className="ui-card" style={{ marginBottom: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
+                <Activity size={24} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)" }}>WhatsApp Account Health</h2>
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Quality rating and messaging limit from Meta.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={refreshMetaHealth}
+              disabled={healthLoading}
+              className="btn-secondary"
+              aria-label="Refresh WhatsApp account health"
+              title="Refresh from Meta"
+              style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}
+            >
+              <RefreshCw size={16} />
+              Refresh
+            </button>
+          </div>
+
+          {healthLoading ? (
+            <div className="loading-container" style={{ minHeight: "80px" }}>
+              <div className="loading-spinner" />
+            </div>
+          ) : healthError ? (
+            <div className="window-warning">
+              <span className="window-warning-text">{healthError}</span>
+            </div>
+          ) : metaHealth ? (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                <div style={{ padding: "16px", border: "1px solid var(--border-color)", borderRadius: "12px" }}>
+                  <div className="form-label" style={{ marginBottom: "10px" }}>Quality Rating</div>
+                  {(() => {
+                    const { color, background, Icon } = getQualityStyle(metaHealth.quality_rating);
+                    return (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 12px", borderRadius: "999px", color, background, fontWeight: 600 }}>
+                        <Icon size={17} />
+                        {metaHealth.quality_rating || "UNKNOWN"}
+                      </span>
+                    );
+                  })()}
+                  <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "10px" }}>
+                    {metaHealth.quality_rating?.toUpperCase() === "RED"
+                      ? "High risk: review messaging practices and recent user feedback."
+                      : metaHealth.quality_rating?.toUpperCase() === "YELLOW"
+                      ? "Quality is declining. Monitor feedback and message relevance."
+                      : metaHealth.quality_rating?.toUpperCase() === "GREEN"
+                      ? "Healthy rating. Keep messages relevant and expected."
+                      : "Meta has not provided a quality rating."}
+                  </p>
+                </div>
+
+                <div style={{ padding: "16px", border: "1px solid var(--border-color)", borderRadius: "12px" }}>
+                  <div className="form-label" style={{ marginBottom: "10px" }}>Messaging Tier</div>
+                  <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)" }}>
+                    {metaHealth.messaging_limit_tier?.replace(/^TIER_/, "") || "UNKNOWN"}
+                  </div>
+                  <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "10px" }}>
+                    {getTierDescription(metaHealth.messaging_limit_tier)}
+                  </p>
+                </div>
+              </div>
+              <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "16px" }}>
+                Limits describe business-initiated conversations per rolling 24 hours, as reported by Meta.
+                {metaHealth.display_phone_number ? ` Phone: ${metaHealth.display_phone_number}.` : ""}
+              </p>
+            </>
+          ) : (
+            <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Meta did not return account health details.</p>
+          )}
+        </section>
+
         <div className="ui-card">
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
             <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>

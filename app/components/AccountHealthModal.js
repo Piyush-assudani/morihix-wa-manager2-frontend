@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Activity, AlertTriangle, CheckCircle, ShieldAlert } from "lucide-react";
-import { getApiUrl } from "../lib/api";
+import { getAccountHealth } from "../lib/api";
 
 export default function AccountHealthModal({ isOpen, onClose }) {
   const [data, setData] = useState(null);
@@ -10,26 +10,24 @@ export default function AccountHealthModal({ isOpen, onClose }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchHealthData();
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
 
-  const fetchHealthData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const apiUrl = getApiUrl();
-      const res = await fetch(`${apiUrl}/api/account-health`);
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed to fetch");
-      setData(result);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    let isMounted = true;
+    getAccountHealth()
+      .then((res) => {
+        if (isMounted) setData(res.data);
+      })
+      .catch((err) => {
+        if (isMounted) setError(err.response?.data?.error || err.message);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
