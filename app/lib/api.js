@@ -35,6 +35,9 @@ export const markMessagesAsRead = (contactId) =>
 export const sendMessage = (contactId, message) =>
   api.post(`/api/messages/${contactId}`, { message });
 
+export const deleteMessage = (messageId) =>
+  api.delete(`/api/messages/${messageId}`);
+
 export const sendMedia = (contactId, file) => {
   const formData = new FormData();
   formData.append("file", file);

@@ -171,12 +171,18 @@ export default function ChatPage() {
       );
     };
 
+    const handleMessageDeleted = (data) => {
+      setMessages((prev) => prev.filter((m) => m.id !== data.id));
+    };
+
     socket.on("new_message", handleNewMessage);
     socket.on("message_status", handleStatusUpdate);
+    socket.on("message_deleted", handleMessageDeleted);
 
     return () => {
       socket.off("new_message", handleNewMessage);
       socket.off("message_status", handleStatusUpdate);
+      socket.off("message_deleted", handleMessageDeleted);
     };
   }, [selectedContact]);
 

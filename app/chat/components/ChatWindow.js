@@ -5,6 +5,7 @@ import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { Phone, Trash2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
+import { deleteMessage } from "../../lib/api";
 
 export default function ChatWindow({
   contact,
@@ -29,6 +30,16 @@ export default function ChatWindow({
     if (isToday(d)) return "Today";
     if (isYesterday(d)) return "Yesterday";
     return format(d, "MMMM d, yyyy");
+  };
+
+  const handleDeleteMessage = async (msgId) => {
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
+    try {
+      await deleteMessage(msgId);
+    } catch (err) {
+      console.error("Delete message failed", err);
+      alert("Failed to delete message");
+    }
   };
 
   
@@ -72,6 +83,7 @@ export default function ChatWindow({
           key={msg.id || idx} 
           message={msg} 
           onImageClick={setSelectedImage}
+          onDelete={handleDeleteMessage}
         />
       );
     });

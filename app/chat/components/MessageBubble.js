@@ -1,9 +1,9 @@
 "use client";
 
 import { format } from "date-fns";
-import { Check, CheckCheck, X } from "lucide-react";
+import { Check, CheckCheck, X, Trash2 } from "lucide-react";
 
-export default function MessageBubble({ message, onImageClick }) {
+export default function MessageBubble({ message, onImageClick, onDelete }) {
   const isOutbound = message.direction === "outbound";
 
   const formatTime = (timestamp) => {
@@ -72,9 +72,18 @@ export default function MessageBubble({ message, onImageClick }) {
           </div>
         )}
         <div className="message-text">{message.message_body}</div>
-        <div className="message-meta">
+        <div className="message-meta" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <span className="message-time">{formatTime(message.timestamp)}</span>
           {renderStatus()}
+          {isOutbound && (
+            <button 
+              onClick={() => onDelete?.(message.id)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', marginLeft: '4px', opacity: 0.6, color: 'var(--text-muted)' }}
+              title="Delete message"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
         </div>
       </div>
     </div>

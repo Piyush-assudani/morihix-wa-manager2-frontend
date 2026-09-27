@@ -8,6 +8,8 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [templateName, setTemplateName] = useState("");
   const [languageCode, setLanguageCode] = useState("en_US");
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -44,20 +46,29 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
     }
   };
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file || isWindowClosed) return;
     
+    setSelectedFile(file);
+    setShowFileModal(true);
+    e.target.value = null; // Reset input
+  };
+
+  const handleConfirmSendFile = async () => {
+    if (!selectedFile || isWindowClosed) return;
+    
     setSending(true);
+    setShowFileModal(false);
     try {
-      const res = await sendMedia(contactId, file);
+      const res = await sendMedia(contactId, selectedFile);
       onMessageSent(res.data);
     } catch (err) {
       console.error("Media send failed:", err);
       alert(err.response?.data?.error || "Failed to send media");
     } finally {
       setSending(false);
-      e.target.value = null; // Reset input
+      setSelectedFile(null);
     }
   };
 
@@ -302,6 +313,42 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
                 disabled={!templateName.trim() || templateSending}
               >
                 {templateSending ? "Sending..." : "Send Template"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* File Confirmation Modal */}
+      {showFileModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowFileModal(false)}
+        >
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-title">Send Media/Document</h3>
+            <div style={{ margin: "20px 0", color: "var(--text-primary)" }}>
+              <p>Are you sure you want to send this file?</p>
+              <div style={{ marginTop: "12px", padding: "12px", background: "var(--bg-tertiary)", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", alignItems: "center", gap: "12px" }}>
+                <Paperclip size={20} className="text-muted" />
+                <span style={{ fontWeight: 500, wordBreak: "break-all" }}>{selectedFile?.name}</span>
+                <span className="text-muted" style={{ fontSize: "12px", marginLeft: "auto" }}>
+                  {(selectedFile?.size / 1024 / 1024).toFixed(2)} MB
+                </span>
+              </div>
+            </div>
+            <div className="modal-actions" style={{ marginTop: "24px" }}>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowFileModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleConfirmSendFile}
+              >
+                Send File
               </button>
             </div>
           </div>
