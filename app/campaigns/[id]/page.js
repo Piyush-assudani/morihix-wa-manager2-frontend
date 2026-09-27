@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Users, CheckCircle2, XCircle, Clock, Filter } from "lucide-react";
 import api from "../../lib/api";
 import { format } from "date-fns";
 
@@ -12,6 +12,7 @@ export default function CampaignRecipientsPage() {
   const [recipients, setRecipients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const fetchRecipients = async () => {
@@ -28,38 +29,68 @@ export default function CampaignRecipientsPage() {
     if (id) fetchRecipients();
   }, [id]);
 
+  const getDerivedStatus = (status, errorMessage) => {
+    if (status === "failed" && errorMessage) {
+      if (errorMessage.toLowerCase().includes("undeliverable")) {
+        return "not-on-whatsapp";
+      } else if (errorMessage.toLowerCase().includes("ecosystem")) {
+        return "spam-filtered";
+      }
+    }
+    return status?.toLowerCase() || "unknown";
+  };
+
   const getStatusBadge = (status, errorMessage) => {
-    switch (status) {
+    const derivedStatus = getDerivedStatus(status, errorMessage);
+    
+    switch (derivedStatus) {
       case "read":
         return <span style={{ color: "#34B7F1", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Read</span>;
       case "delivered":
         return <span style={{ color: "var(--status-delivered)", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Delivered</span>;
-      case "failed": {
-        let reason = "Failed";
-        if (errorMessage) {
-          if (errorMessage.toLowerCase().includes("undeliverable")) {
-            reason = "Not on WhatsApp";
-          } else if (errorMessage.toLowerCase().includes("ecosystem")) {
-            reason = "Spam Filtered";
-          } else {
-            reason = errorMessage.length > 30 ? errorMessage.substring(0, 30) + "..." : errorMessage;
-          }
-        }
+      case "not-on-whatsapp":
+        return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> Not on WhatsApp</span>;
+      case "spam-filtered":
+        return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> Spam Filtered</span>;
+      case "failed":
+        const reason = errorMessage?.length > 30 ? errorMessage.substring(0, 30) + "..." : (errorMessage || "Failed");
         return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }} title={errorMessage || "Failed"}><XCircle size={14} /> {reason}</span>;
-      }
       default:
-        return <span style={{ color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}><Clock size={14} /> {status}</span>;
+        return <span style={{ color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px", textTransform: "capitalize" }}><Clock size={14} /> {status}</span>;
     }
   };
 
+  const filteredRecipients = useMemo(() => {
+    if (filter === "all") return recipients;
+    return recipients.filter((r) => getDerivedStatus(r.status, r.error_message) === filter);
+  }, [recipients, filter]);
+
   return (
     <div className="page-container">
-      <div className="page-header">
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <Link href="/campaigns" className="btn-secondary" style={{ padding: "10px" }}>
             <ArrowLeft size={20} />
           </Link>
           <h1 className="page-title">Campaign Recipients</h1>
+        </div>
+        
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Filter size={16} className="text-muted" />
+          <select 
+            value={filter} 
+            onChange={(e) => setFilter(e.target.value)}
+            className="ui-input"
+            style={{ width: "200px" }}
+          >
+            <option value="all">All Statuses</option>
+            <option value="sent">Sent</option>
+            <option value="delivered">Delivered</option>
+            <option value="read">Read</option>
+            <option value="not-on-whatsapp">Not on WhatsApp</option>
+            <option value="spam-filtered">Spam Filtered</option>
+            <option value="failed">Other Failed</option>
+          </select>
         </div>
       </div>
 
@@ -91,19 +122,25 @@ export default function CampaignRecipientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {recipients.map((r, i) => (
-                  <tr key={r.id} style={{ borderBottom: i === recipients.length - 1 ? "none" : "1px solid var(--border-color)", transition: "background 0.2s ease" }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                {filteredRecipients.length > 0 ? filteredRecipients.map((r, i) => (
+                  <tr key={r.id} style={{ borderBottom: i === filteredRecipients.length - 1 ? "none" : "1px solid var(--border-color)", transition: "background 0.2s ease" }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
                     <td style={{ padding: "16px 24px", color: "var(--text-primary)", fontWeight: 500 }}>
                       +{r.phone_number}
                     </td>
-                    <td style={{ padding: "16px 24px", fontSize: "14px", textTransform: "capitalize" }}>
+                    <td style={{ padding: "16px 24px", fontSize: "14px" }}>
                       {getStatusBadge(r.status, r.error_message)}
                     </td>
                     <td style={{ padding: "16px 24px", color: "var(--text-muted)", fontSize: "14px" }}>
                       {format(new Date(r.timestamp), "MMM d, h:mm a")}
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan="3" style={{ padding: "32px", textAlign: "center", color: "var(--text-muted)" }}>
+                      No recipients match this filter.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

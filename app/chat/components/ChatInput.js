@@ -10,6 +10,8 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [languageCode, setLanguageCode] = useState("en_US");
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [templateParams, setTemplateParams] = useState({});
   const [templateSending, setTemplateSending] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
@@ -78,11 +80,54 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const handleSendTemplate = async () => {
     if (!templateName.trim() || templateSending) return;
 
+    const apiComponents = [];
+
+    if (selectedTemplate) {
+      const headerComp = selectedTemplate.components?.find(c => c.type === "HEADER");
+      if (headerComp && ["IMAGE", "VIDEO", "DOCUMENT"].includes(headerComp.format)) {
+        if (!templateParams.header_media) {
+          alert(`Please provide a ${headerComp.format} URL`);
+          return;
+        }
+        apiComponents.push({
+          type: "header",
+          parameters: [
+            {
+              type: headerComp.format.toLowerCase(),
+              [headerComp.format.toLowerCase()]: { link: templateParams.header_media }
+            }
+          ]
+        });
+      }
+
+      const bodyComp = selectedTemplate.components?.find(c => c.type === "BODY");
+      if (bodyComp && bodyComp.text.includes("{{")) {
+        const count = (bodyComp.text.match(/\{\{\d+\}\}/g) || []).length;
+        const bodyParams = [];
+        for (let i = 1; i <= count; i++) {
+          if (!templateParams[`body_${i}`]) {
+            alert(`Please provide a value for {{${i}}}`);
+            return;
+          }
+          bodyParams.push({
+            type: "text",
+            text: templateParams[`body_${i}`]
+          });
+        }
+        apiComponents.push({
+          type: "body",
+          parameters: bodyParams
+        });
+      }
+    }
+
     setTemplateSending(true);
     try {
-      const res = await sendTemplate(contactId, templateName.trim(), languageCode);
+      const res = await sendTemplate(contactId, templateName.trim(), languageCode, apiComponents);
       onMessageSent(res.data);
       setTemplateName("");
+      setSelectedTemplate(null);
+      setTemplateParams({});
       setShowTemplateModal(false);
     } catch (err) {
       console.error("Template send failed:", err);
@@ -189,9 +234,13 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
                     if (selected) {
                       setTemplateName(selected.name);
                       setLanguageCode(selected.language);
+                      setSelectedTemplate(selected);
+                      setTemplateParams({});
                     } else {
                       setTemplateName("");
                       setLanguageCode("en_US");
+                      setSelectedTemplate(null);
+                      setTemplateParams({});
                     }
                   }}
                 >
@@ -204,7 +253,43 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
                 </select>
               )}
             </div>
-            <div className="modal-actions">
+
+            {selectedTemplate && selectedTemplate.components && (
+              <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                {selectedTemplate.components.map(comp => {
+                  if (comp.type === "HEADER" && ["IMAGE", "VIDEO", "DOCUMENT"].includes(comp.format)) {
+                    return (
+                      <div key="header">
+                        <label className="form-label">{comp.format} URL (Required)</label>
+                        <input 
+                          className="form-input" 
+                          placeholder={`Enter ${comp.format.toLowerCase()} URL...`}
+                          value={templateParams["header_media"] || ""}
+                          onChange={(e) => setTemplateParams({...templateParams, header_media: e.target.value})}
+                        />
+                      </div>
+                    );
+                  }
+                  if (comp.type === "BODY" && comp.text.includes("{{")) {
+                    const count = (comp.text.match(/\{\{\d+\}\}/g) || []).length;
+                    return Array.from({ length: count }).map((_, i) => (
+                      <div key={`body_${i+1}`}>
+                        <label className="form-label">Body Variable {`{{${i+1}}}`}</label>
+                        <input 
+                          className="form-input" 
+                          placeholder={`Value for {{${i+1}}}`}
+                          value={templateParams[`body_${i+1}`] || ""}
+                          onChange={(e) => setTemplateParams({...templateParams, [`body_${i+1}`]: e.target.value})}
+                        />
+                      </div>
+                    ));
+                  }
+                  return null;
+                })}
+              </div>
+            )}
+
+            <div className="modal-actions" style={{ marginTop: "24px" }}>
               <button
                 className="btn-secondary"
                 onClick={() => setShowTemplateModal(false)}

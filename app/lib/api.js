@@ -43,10 +43,11 @@ export const sendMedia = (contactId, file) => {
   });
 };
 
-export const sendTemplate = (contactId, templateName, languageCode = "en_US") =>
+export const sendTemplate = (contactId, templateName, languageCode = "en_US", components = []) =>
   api.post(`/api/messages/${contactId}/template`, {
     template_name: templateName,
     language_code: languageCode,
+    components,
   });
 
 
