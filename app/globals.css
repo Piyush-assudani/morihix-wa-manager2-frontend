@@ -467,6 +467,32 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
+}
+
+.chat-latest-button {
+  position: sticky;
+  bottom: 12px;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -42px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.chat-latest-button:hover {
+  background: var(--bg-hover);
 }
 
 /* ============================================

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import { Phone, Trash2 } from "lucide-react";
+import { ArrowDown, Phone, Trash2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import { deleteMessage } from "../../lib/api";
@@ -15,13 +15,48 @@ export default function ChatWindow({
   onMessageSent,
   onDeleteContact,
 }) {
+  const chatMessagesRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [lastSeenMessageCount, setLastSeenMessageCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
+  const hasNewMessages =
+    messages.length > lastSeenMessageCount && !isAtBottom;
 
-  
+  const scrollToLatest = useCallback((behavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+    isAtBottomRef.current = true;
+  }, []);
+
+  const handleScrollToLatest = () => {
+    setIsAtBottom(true);
+    setLastSeenMessageCount(messages.length);
+    scrollToLatest();
+  };
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (isAtBottomRef.current) {
+      scrollToLatest();
+    }
+  }, [messages, scrollToLatest]);
+
+  useEffect(() => {
+    if (!loading) {
+      scrollToLatest("auto");
+    }
+  }, [contact.id, loading, scrollToLatest]);
+
+  const handleMessagesScroll = () => {
+    const container = chatMessagesRef.current;
+    if (!container) return;
+
+    const atBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 80;
+    isAtBottomRef.current = atBottom;
+    setIsAtBottom(atBottom);
+    if (atBottom) setLastSeenMessageCount(messages.length);
+  };
 
   const formatDateLabel = (date) => {
     if (!date) return "Unknown Date";
@@ -156,7 +191,11 @@ export default function ChatWindow({
       </div>
 
       {}
-      <div className="chat-messages">
+      <div
+        className="chat-messages"
+        ref={chatMessagesRef}
+        onScroll={handleMessagesScroll}
+      >
         {loading ? (
           <div className="loading-container">
             <div className="loading-spinner" />
@@ -166,6 +205,16 @@ export default function ChatWindow({
             {renderMessages()}
             <div ref={messagesEndRef} />
           </>
+        )}
+        {hasNewMessages && !loading && (
+          <button
+            className="chat-latest-button"
+            onClick={handleScrollToLatest}
+            aria-label="Scroll to latest message"
+          >
+            <ArrowDown size={16} />
+            Latest messages
+          </button>
         )}
       </div>
 

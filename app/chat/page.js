@@ -43,24 +43,30 @@ export default function ChatPage() {
     }
   }, []);
 
+  const markContactRead = useCallback(async (contactId) => {
+    try {
+      await markMessagesAsRead(contactId);
+      setContacts((prev) =>
+        prev.map((contact) =>
+          String(contact.id) === String(contactId)
+            ? { ...contact, unread_count: 0 }
+            : contact
+        )
+      );
+    } catch (err) {
+      console.error("Failed to mark messages as read:", err);
+      await fetchContacts();
+    }
+  }, [fetchContacts]);
+
   // Select a contact
   const handleSelectContact = useCallback(
     async (contact) => {
       setSelectedContact(contact);
       fetchMessages(contact.id);
-      // Clear unread count when opening chat
-      setContacts((prev) => 
-        prev.map((c) => c.id == contact.id ? { ...c, unread_count: 0 } : c)
-      );
-
-      // Mark messages as read in backend
-      try {
-        await markMessagesAsRead(contact.id);
-      } catch (err) {
-        console.error("Failed to mark messages as read:", err);
-      }
+      await markContactRead(contact.id);
     },
-    [fetchMessages]
+    [fetchMessages, markContactRead]
   );
 
   // Delete a contact
@@ -92,7 +98,10 @@ export default function ChatPage() {
 
     const handleNewMessage = (msg) => {
       // Update messages if viewing this contact's chat
-      if (selectedContact && msg.contact_id === selectedContact.id) {
+      const isSelectedContact =
+        selectedContact &&
+        String(msg.contact_id) === String(selectedContact.id);
+      if (isSelectedContact) {
         setMessages((prev) => {
           if (prev.some(m => m.id === msg.id || (msg.meta_message_id && m.meta_message_id === msg.meta_message_id))) return prev;
           return [...prev, msg];
@@ -109,10 +118,7 @@ export default function ChatPage() {
             ).toISOString(),
           }));
           
-          // Automatically mark it as read in backend
-          markMessagesAsRead(msg.contact_id).catch(err => 
-            console.error("Failed to mark new message as read:", err)
-          );
+          markContactRead(msg.contact_id);
         }
       }
 
@@ -146,7 +152,7 @@ export default function ChatPage() {
         
         if (
           msg.direction === "inbound" &&
-          (!selectedContact || selectedContact.id !== msg.contact_id)
+          !isSelectedContact
         ) {
           contact.unread_count = (contact.unread_count || 0) + 1;
         }
@@ -184,7 +190,7 @@ export default function ChatPage() {
       socket.off("message_status", handleStatusUpdate);
       socket.off("message_deleted", handleMessageDeleted);
     };
-  }, [selectedContact]);
+  }, [markContactRead, selectedContact]);
 
   
   const handleMessageSent = (newMsg) => {
@@ -232,6 +238,7 @@ export default function ChatPage() {
 
       {selectedContact ? (
         <ChatWindow
+          key={selectedContact.id}
           contact={selectedContact}
           messages={messages}
           windowInfo={windowInfo}
