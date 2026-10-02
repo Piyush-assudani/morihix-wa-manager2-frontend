@@ -30,7 +30,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         localStorage.setItem("token", data.token);
-        router.push("/dashboard");
+        router.push("/chat");
       } else {
         setError(data.error || "Login failed");
       }

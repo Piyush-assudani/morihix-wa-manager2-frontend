@@ -16,7 +16,6 @@ export default function SidebarNav() {
   }
 
   const navItems = [
-    { href: "/dashboard", icon: require("lucide-react").LayoutDashboard, label: "Dashboard" },
     { href: "/chat", icon: MessageCircle, label: "Live Chat" },
     { href: "/replies", icon: Reply, label: "All Replies" },
     { href: "/contacts", icon: Users, label: "Contact Lists" },
