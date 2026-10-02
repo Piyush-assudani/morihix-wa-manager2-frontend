@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SidebarNav from "./components/SidebarNav";
-
+import AuthGuard from "./components/AuthGuard";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -25,7 +25,9 @@ export default function RootLayout({ children }) {
           <SidebarNav />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {children}
+              <AuthGuard>
+                {children}
+              </AuthGuard>
             </div>
             <div style={{ 
               display: 'flex', 
