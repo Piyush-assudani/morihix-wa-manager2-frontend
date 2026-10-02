@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Megaphone, LayoutTemplate, X } from "lucide-react";
+import { ArrowLeft, Megaphone, LayoutTemplate, X, Image as ImageIcon, Video, FileText } from "lucide-react";
 import api from "../../lib/api";
 
 export default function NewTemplatePage() {
@@ -85,8 +85,9 @@ export default function NewTemplatePage() {
         </div>
       </div>
 
-      <div className="page-content" style={{ maxWidth: "720px" }}>
-        <div className="ui-card">
+      <div className="page-content" style={{ display: "flex", gap: "24px", height: "calc(100vh - 80px)", overflow: "hidden" }}>
+        {/* Left side: Form */}
+        <div className="ui-card" style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
           <form onSubmit={handleSubmit}>
             {error && (
               <div className="window-warning" style={{ marginBottom: "24px" }}>
@@ -225,7 +226,7 @@ export default function NewTemplatePage() {
               )}
             </div>
 
-            <div style={{ display: "flex", gap: "16px", marginTop: "40px" }}>
+            <div style={{ display: "flex", gap: "16px", marginTop: "40px", paddingBottom: "24px" }}>
               <button
                 type="submit"
                 className="btn-primary"
@@ -248,6 +249,51 @@ export default function NewTemplatePage() {
               </Link>
             </div>
           </form>
+        </div>
+
+        {/* Right side: WhatsApp Preview */}
+        <div style={{ width: '400px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#e5ddd5', borderRadius: '16px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '1px solid #d1d5db' }}>
+            {/* Header */}
+            <div style={{ background: '#075e54', padding: '16px', color: 'white', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ImageIcon size={20} color="#075e54" />
+              </div>
+              <div>
+                <div style={{ fontWeight: '600', fontSize: '15px' }}>WhatsApp Preview</div>
+                <div style={{ fontSize: '12px', opacity: 0.8 }}>Business Account</div>
+              </div>
+            </div>
+            
+            {/* Chat area */}
+            <div style={{ flex: 1, padding: '20px', backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: 'cover', overflowY: 'auto' }}>
+              
+              <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', maxWidth: '90%', borderTopLeftRadius: '0' }}>
+                
+                {headerType === 'IMAGE' && <div style={{ width: '100%', height: '140px', background: '#cbd5e1', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}><ImageIcon size={32} /></div>}
+                {headerType === 'VIDEO' && <div style={{ width: '100%', height: '140px', background: '#cbd5e1', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}><Video size={32} /></div>}
+                {headerType === 'DOCUMENT' && <div style={{ width: '100%', padding: '16px', background: '#e2e8f0', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}><FileText color="#64748b" size={24} /><span style={{ fontSize: '14px', color: '#475569', fontWeight: '500' }}>Document.pdf</span></div>}
+                
+                <div style={{ fontSize: '14px', color: '#111', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
+                  {bodyText || 'Your message text will appear here...'}
+                </div>
+                
+                <div style={{ fontSize: '11px', color: '#667781', textAlign: 'right', marginTop: '4px' }}>12:00 PM</div>
+              </div>
+
+              {buttons.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', maxWidth: '90%' }}>
+                  {buttons.map((btn, i) => (
+                    <div key={i} style={{ background: 'white', padding: '10px', borderRadius: '8px', textAlign: 'center', fontSize: '14px', color: '#00a884', fontWeight: '500', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+                      {btn.type === "URL" && "🔗 "}
+                      {btn.type === "PHONE_NUMBER" && "📞 "}
+                      {btn.text || 'Button'}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
