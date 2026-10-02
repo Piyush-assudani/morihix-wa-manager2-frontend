@@ -38,9 +38,16 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
     const isDocument = url.match(/\.(pdf|doc|docx|xls|xlsx|csv|txt)$/) || url.includes("raw/upload") || message.message_body === "[Document]";
 
     if (isAudio) {
+      let audioUrl = message.media_url;
+      // Safari/Mac often fails to play .ogg files from WhatsApp.
+      // Cloudinary can transcode on the fly if we append .mp3 to the URL.
+      if (audioUrl.includes('cloudinary.com/')) {
+        audioUrl = audioUrl.replace(/\.[^/.]+$/, "") + ".mp3";
+      }
+      
       return (
-        <div style={{ padding: "8px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", marginBottom: "8px" }}>
-          <audio src={message.media_url} controls style={{ width: "100%" }} />
+        <div style={{ padding: "8px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", marginBottom: "8px", minWidth: "260px" }}>
+          <audio src={audioUrl} controls style={{ width: "100%", height: "40px" }} preload="metadata" />
         </div>
       );
     }
