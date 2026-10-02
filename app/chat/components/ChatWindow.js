@@ -259,7 +259,7 @@ export default function ChatWindow({
         windowInfo={windowInfo}
         onMessageSent={onMessageSent}
       />
-      {/* Image Modal */}
+      {/* Media Modal */}
       {selectedImage && (
         <div 
           onClick={() => setSelectedImage(null)}
@@ -270,14 +270,19 @@ export default function ChatWindow({
             padding: "40px"
           }}
         >
-          <div style={{ position: "relative", maxWidth: "90%", maxHeight: "90%" }}>
+          <div style={{ position: "relative", maxWidth: "90%", maxHeight: "90%" }} onClick={(e) => e.stopPropagation()}>
             <button 
               onClick={() => setSelectedImage(null)}
-              style={{ position: "absolute", top: "-40px", right: "0", background: "none", border: "none", color: "white", fontSize: "24px", cursor: "pointer" }}
+              style={{ position: "absolute", top: "-40px", right: "0", background: "none", border: "none", color: "white", fontSize: "24px", cursor: "pointer", zIndex: 1001 }}
             >
               ✕
             </button>
-            <img src={selectedImage} alt="Full screen" style={{ maxWidth: "100%", maxHeight: "80vh", objectFit: "contain", borderRadius: "8px" }} />
+            
+            {typeof selectedImage === 'string' || selectedImage?.type === 'image' ? (
+              <img src={typeof selectedImage === 'string' ? selectedImage : selectedImage.url} alt="Full screen" style={{ maxWidth: "100%", maxHeight: "80vh", objectFit: "contain", borderRadius: "8px" }} />
+            ) : selectedImage?.type === 'video' ? (
+              <video src={selectedImage.url} controls autoPlay style={{ maxWidth: "100%", maxHeight: "80vh", borderRadius: "8px" }} />
+            ) : null}
           </div>
         </div>
       )}

@@ -35,7 +35,15 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
     
     if (url.match(/\.(mp4|webm|mov)$/) || url.includes("video/upload")) {
       return (
-        <video src={message.media_url} controls className="max-w-full rounded-md mb-2" style={{ maxHeight: "200px" }} />
+        <video 
+          src={message.media_url} 
+          className="max-w-full rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity" 
+          style={{ maxHeight: "200px" }} 
+          onClick={(e) => {
+            e.preventDefault();
+            onImageClick?.({ url: message.media_url, type: 'video' });
+          }}
+        />
       );
     }
     if (url.match(/\.(mp3|wav|ogg|aac|amr)$/) || url.includes("audio")) {
@@ -59,7 +67,7 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
       <img 
         src={message.media_url} 
         alt="Media" 
-        onClick={() => onImageClick?.(message.media_url)}
+        onClick={() => onImageClick?.({ url: message.media_url, type: 'image' })}
         className="max-w-full rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity" 
         style={{ maxHeight: "200px", objectFit: "contain" }} 
         title="Click to view full image"
@@ -116,7 +124,7 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
   };
 
   const renderMessageContent = () => {
-    if (message.message_body === '[unsupported]') {
+    if (message.message_body === '[unsupported]' && !message.media_url) {
       return (
         <div className="message-text" style={{ color: "var(--warning-text)", display: "flex", alignItems: "center", gap: "6px", fontStyle: "italic" }}>
           <span role="img" aria-label="warning">⚠️</span> Unsupported message type
@@ -131,8 +139,9 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
       }
     }
     
-    if (message.message_body === '[Media]' && message.media_url) {
-      return null; // Don't render "[Media]" text if we have the media URL
+    const hiddenMediaLabels = ['[Media]', '[Video]', '[Image]', '[Audio]', '[Document]', '[Sticker]', '[unsupported]'];
+    if (hiddenMediaLabels.includes(message.message_body) && message.media_url) {
+      return null;
     }
 
     return <div className="message-text">{message.message_body}</div>;

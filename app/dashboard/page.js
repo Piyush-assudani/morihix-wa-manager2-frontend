@@ -47,10 +47,13 @@ export default function DashboardPage() {
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111' }}>Welcome back, Admin! 👋</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Here's what's happening with your business today.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn-secondary" style={{ background: '#fff', border: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
-            <span role="img" aria-label="calendar">📅</span> Oct 1, 2026 - Oct 31, 2026
-          </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span role="img" aria-label="calendar">📅</span>
+            <input type="date" style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: '#333' }} />
+            <span style={{ color: '#94a3b8' }}>-</span>
+            <input type="date" style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: '#333' }} />
+          </div>
           <Link href="/campaigns/new" className="btn-primary" style={{ background: '#3b82f6', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, textDecoration: 'none' }}>
             + Quick Create
           </Link>
