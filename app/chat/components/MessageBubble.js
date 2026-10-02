@@ -33,12 +33,25 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
     if (!message.media_url) return null;
     const url = message.media_url.toLowerCase();
     
-    if (url.match(/\.(mp4|webm|mov)$/) || url.includes("video/upload")) {
+    const isAudio = url.match(/\.(mp3|wav|ogg|aac|amr|m4a)$/) || url.includes("audio") || message.message_body === "[Audio]";
+    const isVideo = url.match(/\.(mp4|webm|mov)$/) || (url.includes("video/upload") && !isAudio);
+    const isDocument = url.match(/\.(pdf|doc|docx|xls|xlsx|csv|txt)$/) || url.includes("raw/upload") || message.message_body === "[Document]";
+
+    if (isAudio) {
+      return (
+        <div style={{ padding: "8px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", marginBottom: "8px" }}>
+          <audio src={message.media_url} controls style={{ width: "100%" }} />
+        </div>
+      );
+    }
+    
+    if (isVideo) {
       return (
         <video 
           src={message.media_url} 
           className="max-w-full rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity" 
           style={{ maxHeight: "200px" }} 
+          controls={false}
           onClick={(e) => {
             e.preventDefault();
             onImageClick?.({ url: message.media_url, type: 'video' });
@@ -46,14 +59,8 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
         />
       );
     }
-    if (url.match(/\.(mp3|wav|ogg|aac|amr)$/) || url.includes("audio")) {
-      return (
-        <div style={{ padding: "8px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", marginBottom: "8px" }}>
-          <audio src={message.media_url} controls style={{ width: "100%" }} />
-        </div>
-      );
-    }
-    if (url.match(/\.(pdf|doc|docx|xls|xlsx|csv|txt)$/) || url.includes("raw/upload")) {
+    
+    if (isDocument) {
       const fileName = message.media_url.split('/').pop() || "Document";
       return (
         <a href={message.media_url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", textDecoration: "none", color: "var(--text-primary)", marginBottom: "8px" }}>
