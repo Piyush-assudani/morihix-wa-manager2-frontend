@@ -25,6 +25,13 @@ export default function ChatWindow({
   const [pendingDeleteMessage, setPendingDeleteMessage] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [templates, setTemplates] = useState([]);
+
+  useEffect(() => {
+    import("../../lib/api").then(({ getTemplates }) => {
+      getTemplates().then(res => setTemplates(res.data)).catch(console.error);
+    });
+  }, []);
   const hasNewMessages =
     messages.length > lastSeenMessageCount && !isAtBottom;
 
@@ -140,7 +147,8 @@ export default function ChatWindow({
       elements.push(
         <MessageBubble 
           key={msg.id || idx} 
-          message={msg} 
+          message={msg}
+          templates={templates} 
           onImageClick={setSelectedImage}
           onDelete={() => {
             setDeleteError("");

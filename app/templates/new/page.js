@@ -3,38 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Megaphone, LayoutTemplate, X } from "lucide-react";
+import { ArrowLeft, MessageSquare, Image as ImageIcon, Video, FileText, MapPin, Eye, CheckCircle2, AlertCircle } from "lucide-react";
 import api from "../../lib/api";
 
 export default function NewTemplatePage() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("MARKETING");
-  const [language, setLanguage] = useState("en_US");
-  const [headerType, setHeaderType] = useState("NONE");
+  const [category, setCategory] = useState("UTILITY");
+  const [language, setLanguage] = useState("en");
+  const [headerType, setHeaderType] = useState("TEXT");
+  const [headerText, setHeaderText] = useState("");
   const [bodyText, setBodyText] = useState("");
-  const [buttons, setButtons] = useState([]);
-  
-  const handleAddButton = (type) => {
-    if (buttons.length >= 3) return;
-    if (type === "QUICK_REPLY") {
-      setButtons([...buttons, { type: "QUICK_REPLY", text: "" }]);
-    } else if (type === "URL") {
-      setButtons([...buttons, { type: "URL", text: "", url: "" }]);
-    } else if (type === "PHONE_NUMBER") {
-      setButtons([...buttons, { type: "PHONE_NUMBER", text: "", phone_number: "" }]);
-    }
-  };
-
-  const handleRemoveButton = (index) => {
-    setButtons(buttons.filter((_, i) => i !== index));
-  };
-
-  const handleButtonChange = (index, field, value) => {
-    const newButtons = [...buttons];
-    newButtons[index][field] = value;
-    setButtons(newButtons);
-  };
+  const [footerText, setFooterText] = useState("");
+  const [interactiveAction, setInteractiveAction] = useState("NONE");
   
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -42,211 +23,178 @@ export default function NewTemplatePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!name.trim() || !bodyText.trim()) {
-      setError("Please provide a template name and message body.");
-      return;
-    }
-
     setSubmitting(true);
-    setError(null);
-
-    try {
-      await api.post("/api/templates", {
-        name: name.trim(),
-        language,
-        category,
-        text: bodyText.trim(),
-        headerType,
-        buttons: buttons.length > 0 ? buttons : undefined
-      });
-
-      setSuccess(`Template submitted to Meta successfully! It will appear in the templates list once approved (usually takes 1-2 minutes).`);
-
-      setTimeout(() => {
-        router.push("/templates");
-      }, 3000);
-    } catch (err) {
-      console.error("Template creation failed:", err);
-      setError(err.response?.data?.error || "Failed to submit template to Meta.");
-    } finally {
-      setSubmitting(false);
-    }
+    // Add logic here later
+    setSubmitting(false);
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <Link href="/templates" className="btn-secondary" style={{ padding: "10px" }}>
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="page-title">Create Custom Template</h1>
+    <div style={{ display: 'flex', height: '100%', background: '#f5f7f9' }}>
+      <div style={{ flex: '1', padding: '24px', overflowY: 'auto' }}>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Link href="/templates"><ArrowLeft size={20} className="text-gray-500 cursor-pointer hover:text-black" /></Link>
+            Create New Template
+          </h2>
+          
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Template Language</label>
+            <select value={language} onChange={(e) => setLanguage(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}>
+              <option value="en">English</option>
+              <option value="en_US">English (US)</option>
+              <option value="en_GB">English (UK)</option>
+              <option value="hi">Hindi</option>
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Template Category</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {['UTILITY', 'MARKETING', 'AUTHENTICATION'].map((cat) => (
+                <button 
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  style={{ 
+                    flex: 1, 
+                    padding: '12px', 
+                    borderRadius: '8px', 
+                    border: `1px solid ${category === cat ? '#3b82f6' : '#e2e8f0'}`,
+                    background: category === cat ? '#eff6ff' : '#fff',
+                    color: category === cat ? '#1d4ed8' : '#64748b',
+                    fontWeight: '500',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {cat === 'UTILITY' && '🧰 '}
+                  {cat === 'MARKETING' && '📈 '}
+                  {cat === 'AUTHENTICATION' && '🔐 '}
+                  {cat.charAt(0) + cat.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Template Name</label>
+            <input 
+              type="text" 
+              value={name}
+              onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
+              placeholder="Enter template name (e.g. order_update)"
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}
+            />
+            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Name can only be lowercase alphanumeric characters and underscores.</p>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Template Type</label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { type: 'TEXT', icon: MessageSquare, label: 'Text' },
+                { type: 'IMAGE', icon: ImageIcon, label: 'Image' },
+                { type: 'VIDEO', icon: Video, label: 'Video' },
+                { type: 'DOCUMENT', icon: FileText, label: 'Document' },
+                { type: 'LOCATION', icon: MapPin, label: 'Location' }
+              ].map((item) => (
+                <button
+                  key={item.type}
+                  onClick={() => setHeaderType(item.type)}
+                  style={{ 
+                    padding: '10px 16px', 
+                    borderRadius: '8px', 
+                    border: `1px solid ${headerType === item.type ? '#8b5cf6' : '#e2e8f0'}`,
+                    background: headerType === item.type ? '#f3e8ff' : '#fff',
+                    color: headerType === item.type ? '#6d28d9' : '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: '500',
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <item.icon size={16} />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {headerType === 'TEXT' && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Template Header (Optional)</label>
+              <input 
+                type="text" 
+                value={headerText}
+                onChange={(e) => setHeaderText(e.target.value)}
+                placeholder="Enter template header"
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}
+                maxLength={60}
+              />
+              <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Header text is optional and only up to 60 characters are allowed.</p>
+            </div>
+          )}
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Template Body</label>
+            <textarea 
+              value={bodyText}
+              onChange={(e) => setBodyText(e.target.value)}
+              placeholder="Enter your message content here..."
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', height: '120px', resize: 'none' }}
+              maxLength={1024}
+            />
+            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Up to 1024 characters are allowed.</p>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Template Footer (Optional)</label>
+            <input 
+              type="text" 
+              value={footerText}
+              onChange={(e) => setFooterText(e.target.value)}
+              placeholder="Enter template footer"
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}
+              maxLength={60}
+            />
+          </div>
+
         </div>
       </div>
-
-      <div className="page-content" style={{ maxWidth: "720px" }}>
-        <div className="ui-card">
-          <form onSubmit={handleSubmit}>
-            {error && (
-              <div className="window-warning" style={{ marginBottom: "24px" }}>
-                <span className="window-warning-text">{error}</span>
-                <button
-                  type="button"
-                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
-                  onClick={() => setError(null)}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            )}
-
-            {success && (
-              <div style={{ padding: "16px", background: "var(--bubble-outbound)", border: "1px solid var(--secondary-accent-muted)", borderRadius: "12px", marginBottom: "24px", color: "var(--secondary-accent)", fontSize: "15px", fontWeight: "600" }}>
-                ✅ {success}
-              </div>
-            )}
-
-            <div className="form-group">
-              <label className="form-label">Template Name</label>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>
-                Use only lowercase letters, numbers, and underscores (e.g., `diwali_offer_2026`). No spaces allowed.
-              </p>
-              <input
-                className="form-input"
-                type="text"
-                placeholder="e.g., diwali_offer_2026"
-                value={name}
-                onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))}
-                required
-              />
+      
+      {/* Right side preview panel */}
+      <div style={{ width: '380px', padding: '24px', background: '#f5f7f9', borderLeft: '1px solid #e2e8f0' }}>
+        <div style={{ background: '#e5ddd5', borderRadius: '16px', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+          {/* Header */}
+          <div style={{ background: '#075e54', padding: '16px', color: 'white', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ImageIcon size={20} color="#075e54" />
             </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px" }}>
-              <div className="form-group">
-                <label className="form-label">Category</label>
-                <select
-                  className="form-select"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  required
-                >
-                  <option value="MARKETING">Marketing (Promotions, Offers)</option>
-                  <option value="UTILITY">Utility (Updates, Confirmations)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Language</label>
-                <select
-                  className="form-select"
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  required
-                >
-                  <option value="en_US">English (US)</option>
-                  <option value="en_GB">English (UK)</option>
-                  <option value="hi">Hindi</option>
-                  <option value="mr">Marathi</option>
-                  <option value="gu">Gujarati</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Media Header</label>
-                <select
-                  className="form-select"
-                  value={headerType}
-                  onChange={(e) => setHeaderType(e.target.value)}
-                >
-                  <option value="NONE">None (Text Only)</option>
-                  <option value="IMAGE">Image</option>
-                  <option value="VIDEO">Video</option>
-                  <option value="DOCUMENT">Document (PDF)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Message Body</label>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>
-                Enter the exact text you want to send. (Variables like {'{{1}}'} are currently not supported in this simple builder).
-              </p>
-              <textarea
-                className="form-input"
-                rows={6}
-                placeholder="Hello! We have a special offer for you..."
-                value={bodyText}
-                onChange={(e) => setBodyText(e.target.value)}
-                required
-                style={{ resize: "vertical" }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginTop: "24px" }}>
-              <label className="form-label">Buttons (Optional)</label>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px" }}>
-                Add up to 3 interactive buttons (Quick Replies or Calls to Action).
-              </p>
+            <div style={{ fontWeight: '500' }}>WhatsApp Preview</div>
+          </div>
+          
+          {/* Chat area */}
+          <div style={{ flex: 1, padding: '16px', backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: 'cover' }}>
+            
+            <div style={{ background: 'white', borderRadius: '8px', padding: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', maxWidth: '90%', borderTopLeftRadius: '0' }}>
+              {headerType === 'IMAGE' && <div style={{ width: '100%', height: '120px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ImageIcon color="#94a3b8" /></div>}
+              {headerType === 'VIDEO' && <div style={{ width: '100%', height: '120px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Video color="#94a3b8" /></div>}
+              {headerType === 'DOCUMENT' && <div style={{ width: '100%', padding: '12px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileText color="#94a3b8" size={16} /><span style={{ fontSize: '13px', color: '#64748b' }}>Document</span></div>}
+              {headerType === 'LOCATION' && <div style={{ width: '100%', height: '120px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MapPin color="#94a3b8" /></div>}
               
-              {buttons.map((btn, idx) => (
-                <div key={idx} style={{ padding: "16px", background: "var(--bg-tertiary)", border: "1px solid var(--border-color)", borderRadius: "8px", marginBottom: "12px", position: "relative" }}>
-                  <button type="button" onClick={() => handleRemoveButton(idx)} style={{ position: "absolute", top: "12px", right: "12px", background: "none", border: "none", color: "red", cursor: "pointer" }}>
-                    <X size={16} />
-                  </button>
-                  <div style={{ fontWeight: "600", fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>
-                    {btn.type.replace("_", " ")} BUTTON
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: btn.type === "QUICK_REPLY" ? "1fr" : "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <input type="text" className="form-input" placeholder="Button Text (Max 25 chars)" value={btn.text} onChange={(e) => handleButtonChange(idx, "text", e.target.value)} maxLength={25} required />
-                    </div>
-                    {btn.type === "URL" && (
-                      <div>
-                        <input type="url" className="form-input" placeholder="https://example.com" value={btn.url} onChange={(e) => handleButtonChange(idx, "url", e.target.value)} required />
-                      </div>
-                    )}
-                    {btn.type === "PHONE_NUMBER" && (
-                      <div>
-                        <input type="text" className="form-input" placeholder="+1234567890" value={btn.phone_number} onChange={(e) => handleButtonChange(idx, "phone_number", e.target.value)} required />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {buttons.length < 3 && (
-                <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                  <button type="button" className="btn-secondary" onClick={() => handleAddButton("QUICK_REPLY")} style={{ fontSize: "13px", padding: "6px 12px" }}>+ Quick Reply</button>
-                  <button type="button" className="btn-secondary" onClick={() => handleAddButton("URL")} style={{ fontSize: "13px", padding: "6px 12px" }}>+ URL Link</button>
-                  <button type="button" className="btn-secondary" onClick={() => handleAddButton("PHONE_NUMBER")} style={{ fontSize: "13px", padding: "6px 12px" }}>+ Phone</button>
-                </div>
-              )}
+              {headerText && headerType === 'TEXT' && <div style={{ fontWeight: 'bold', fontSize: '15px', marginBottom: '4px', color: '#000' }}>{headerText}</div>}
+              
+              <div style={{ fontSize: '14.2px', color: '#111', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
+                {bodyText || 'Your message content here...'}
+              </div>
+              
+              {footerText && <div style={{ fontSize: '13px', color: '#667781', marginTop: '4px' }}>{footerText}</div>}
+              
+              <div style={{ fontSize: '11px', color: '#667781', textAlign: 'right', marginTop: '4px' }}>12:00 PM</div>
             </div>
-
-            <div style={{ display: "flex", gap: "16px", marginTop: "40px" }}>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={submitting || !name.trim() || !bodyText.trim()}
-              >
-                {submitting ? (
-                  <>
-                    <div className="loading-spinner" style={{ width: "18px", height: "18px", borderWidth: "3px" }} />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <LayoutTemplate size={18} />
-                    Submit to Meta
-                  </>
-                )}
-              </button>
-              <Link href="/templates" className="btn-secondary">
-                Cancel
-              </Link>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
