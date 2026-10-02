@@ -8,16 +8,29 @@ import Link from "next/link";
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Set default to current month
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+  
+  const [startDate, setStartDate] = useState(firstDay);
+  const [endDate, setEndDate] = useState(lastDay);
 
-  useEffect(() => {
-    api.get("/api/dashboard").then((res) => {
+  const fetchDashboard = () => {
+    setLoading(true);
+    api.get("/api/dashboard", { params: { startDate, endDate } }).then((res) => {
       setStats(res.data);
       setLoading(false);
     }).catch(err => {
       console.error(err);
       setLoading(false);
     });
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [startDate, endDate]);
 
   if (loading) {
     return <div className="page-container"><div className="loading-container"><div className="loading-spinner" /></div></div>;
@@ -50,9 +63,19 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span role="img" aria-label="calendar">📅</span>
-            <input type="date" style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: '#333' }} />
+            <input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: '#333' }} 
+            />
             <span style={{ color: '#94a3b8' }}>-</span>
-            <input type="date" style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: '#333' }} />
+            <input 
+              type="date" 
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: '#333' }} 
+            />
           </div>
           <Link href="/campaigns/new" className="btn-primary" style={{ background: '#3b82f6', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, textDecoration: 'none' }}>
             + Quick Create
