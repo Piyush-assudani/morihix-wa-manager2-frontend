@@ -23,9 +23,36 @@ export default function NewTemplatePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!name || !bodyText) {
+      setError("Template name and body are required");
+      return;
+    }
+    
     setSubmitting(true);
-    // Add logic here later
-    setSubmitting(false);
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      await api.post("/api/templates", {
+        name,
+        language,
+        category,
+        text: bodyText,
+        headerType,
+        headerText: headerType === "TEXT" ? headerText : "",
+        footerText
+      });
+      
+      setSuccess("Template created successfully! It is now pending Meta approval.");
+      setTimeout(() => {
+        router.push("/templates");
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.error || "Failed to create template");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -159,6 +186,33 @@ export default function NewTemplatePage() {
               style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}
               maxLength={60}
             />
+          </div>
+
+          {error && (
+            <div style={{ padding: '12px', background: '#fee2e2', color: '#ef4444', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div style={{ padding: '12px', background: '#dcfce7', color: '#16a34a', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+              <CheckCircle2 size={18} />
+              {success}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+            <Link href="/templates" style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: '600', textDecoration: 'none', cursor: 'pointer' }}>
+              Cancel
+            </Link>
+            <button 
+              onClick={handleSubmit}
+              disabled={submitting}
+              style={{ padding: '12px 24px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: '600', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              {submitting ? 'Creating...' : 'Submit to Meta for Approval'}
+            </button>
           </div>
 
         </div>
