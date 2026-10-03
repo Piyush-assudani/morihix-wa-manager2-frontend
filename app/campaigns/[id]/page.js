@@ -11,6 +11,7 @@ export default function CampaignDetailPage() {
   const { id } = useParams();
   const [campaign, setCampaign] = useState(null);
   const [recipients, setRecipients] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview"); // overview, messages, analytics
@@ -19,12 +20,14 @@ export default function CampaignDetailPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [campRes, recRes] = await Promise.all([
+        const [campRes, recRes, tmplRes] = await Promise.all([
           api.get(`/api/campaigns/${id}`),
-          api.get(`/api/campaigns/${id}/recipients`)
+          api.get(`/api/campaigns/${id}/recipients`),
+          api.get('/api/templates')
         ]);
         setCampaign(campRes.data);
         setRecipients(recRes.data);
+        setTemplates(tmplRes.data);
       } catch (err) {
         console.error("Failed to fetch campaign data:", err);
         setError("Failed to load campaign data");
@@ -81,6 +84,11 @@ export default function CampaignDetailPage() {
     if (filter === "all") return recipients;
     return recipients.filter((r) => getDerivedStatus(r.status, r.error_message) === filter);
   }, [recipients, filter]);
+
+  const template = templates?.find((t) => t.name === campaign?.template_name);
+  const header = template?.components?.find(c => c.type === "HEADER");
+  const body = template?.components?.find(c => c.type === "BODY");
+  const footer = template?.components?.find(c => c.type === "FOOTER");
 
   if (loading) {
     return <div className="page-container"><div className="loading-container"><div className="loading-spinner" /></div></div>;
@@ -192,12 +200,51 @@ export default function CampaignDetailPage() {
                 
                 <div style={{ background: "#e5ddd5", padding: "16px", borderRadius: "12px", backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: 'cover' }}>
                   <div style={{ background: "white", padding: "12px", borderRadius: "8px", borderTopLeftRadius: "0", boxShadow: "0 1px 2px rgba(0,0,0,0.1)", fontSize: "14px" }}>
-                    <div style={{ color: "var(--text-muted)", fontSize: "12px", marginBottom: "8px", borderBottom: "1px solid #eee", paddingBottom: "8px", display: "flex", gap: "6px", alignItems: "center" }}>
-                      <Activity size={12} />
-                      This is just a preview. The actual message may appear differently.
-                    </div>
-                    <div style={{ fontWeight: "600", color: "var(--text-secondary)", marginBottom: "8px" }}>Template: {campaign.template_name}</div>
-                    <div style={{ color: "var(--text-primary)" }}>The template body content was sent dynamically via the Meta API.</div>
+                    
+                    {template ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {header && header.format === "IMAGE" && (
+                          <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100px" }}>
+                            <span style={{ fontSize: "24px", color: "#aaa" }}>📷</span>
+                          </div>
+                        )}
+                        {header && header.format === "VIDEO" && (
+                          <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100px" }}>
+                            <span style={{ fontSize: "24px", color: "#aaa" }}>🎥</span>
+                          </div>
+                        )}
+                        {header && header.format === "DOCUMENT" && (
+                          <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60px" }}>
+                            <span style={{ fontSize: "24px", color: "#aaa" }}>📄</span>
+                          </div>
+                        )}
+                        {header && header.format === "TEXT" && (
+                          <div style={{ fontWeight: 600, fontSize: "15px" }}>{header.text}</div>
+                        )}
+                        
+                        {body && (
+                          <div style={{ whiteSpace: "pre-wrap", color: "var(--text-primary)" }}>
+                            {body.text.replace(/\{\{\d+\}\}/g, '___')}
+                          </div>
+                        )}
+                        
+                        {footer && (
+                          <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                            {footer.text}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ color: "var(--text-muted)", fontSize: "12px", marginBottom: "8px", borderBottom: "1px solid #eee", paddingBottom: "8px", display: "flex", gap: "6px", alignItems: "center" }}>
+                          <Activity size={12} />
+                          This is just a preview. The actual message may appear differently.
+                        </div>
+                        <div style={{ fontWeight: "600", color: "var(--text-secondary)", marginBottom: "8px" }}>Template: {campaign.template_name}</div>
+                        <div style={{ color: "var(--text-primary)" }}>The template body content was sent dynamically via the Meta API.</div>
+                      </>
+                    )}
+
                   </div>
                 </div>
               </div>
