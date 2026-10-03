@@ -85,6 +85,47 @@ export default function CampaignDetailPage() {
     return recipients.filter((r) => getDerivedStatus(r.status, r.error_message) === filter);
   }, [recipients, filter]);
 
+  const analyticsData = useMemo(() => {
+    if (!campaign || !recipients.length) return null;
+    
+    const errors = {};
+    recipients.forEach(r => {
+      if (r.status === 'failed' && r.error_message) {
+        errors[r.error_message] = (errors[r.error_message] || 0) + 1;
+      } else if (r.status === 'failed') {
+        errors["Unknown Error"] = (errors["Unknown Error"] || 0) + 1;
+      }
+    });
+    const errorList = Object.entries(errors).map(([msg, count]) => ({ msg, count })).sort((a,b) => b.count - a.count);
+
+    let totalReadTime = 0;
+    let validReadCount = 0;
+    recipients.forEach(r => {
+      if (r.status === 'read' && r.timestamp) {
+        const readTime = new Date(r.timestamp).getTime();
+        const sentTime = new Date(campaign.created_at).getTime();
+        if (readTime > sentTime) {
+          totalReadTime += (readTime - sentTime);
+          validReadCount++;
+        }
+      }
+    });
+    
+    let avgReadTimeText = "N/A";
+    if (validReadCount > 0) {
+      const avgMs = totalReadTime / validReadCount;
+      const avgMins = Math.round(avgMs / 60000);
+      if (avgMins < 60) {
+        avgReadTimeText = `${avgMins} mins`;
+      } else {
+        const hours = (avgMins / 60).toFixed(1);
+        avgReadTimeText = `${hours} hrs`;
+      }
+    }
+
+    return { errorList, avgReadTimeText, validReadCount };
+  }, [campaign, recipients]);
+
   const template = templates?.find((t) => t.name === campaign?.template_name);
   const header = template?.components?.find(c => c.type === "HEADER");
   const body = template?.components?.find(c => c.type === "BODY");
@@ -309,11 +350,88 @@ export default function CampaignDetailPage() {
           </div>
         )}
 
-        {activeTab === "analytics" && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 20px", background: "#fff", borderRadius: "12px", textAlign: "center" }}>
-            <Activity size={48} color="var(--accent)" style={{ opacity: 0.5, marginBottom: "16px" }} />
-            <h2 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>Detailed Analytics Coming Soon</h2>
-            <p style={{ color: "var(--text-muted)", maxWidth: "400px" }}>We're working on providing more in-depth analytics like link click rates and response times.</p>
+        {activeTab === "analytics" && analyticsData && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+            
+            {/* Left Column: Key Metrics */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <div style={{ background: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>Performance Insights</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div style={{ padding: "16px", background: "#f8fafc", borderRadius: "8px" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: "500", marginBottom: "4px" }}>Average Time to Read</div>
+                    <div style={{ fontSize: "24px", fontWeight: "bold", color: "var(--accent)" }}>{analyticsData.avgReadTimeText}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: "12px", marginTop: "4px" }}>Based on {analyticsData.validReadCount} read receipts</div>
+                  </div>
+                  <div style={{ padding: "16px", background: "#f8fafc", borderRadius: "8px" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: "500", marginBottom: "4px" }}>Failure Rate</div>
+                    <div style={{ fontSize: "24px", fontWeight: "bold", color: "var(--status-failed)" }}>
+                      {totalContacts > 0 ? ((failedCount / totalContacts) * 100).toFixed(1) : "0.0"}%
+                    </div>
+                    <div style={{ color: "var(--text-muted)", fontSize: "12px", marginTop: "4px" }}>Percentage of failed messages</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>Engagement Funnel</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", height: "120px", padding: "0 20px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{totalContacts}</div>
+                    <div style={{ width: "100%", height: "100px", background: "#64748b", borderRadius: "4px 4px 0 0" }}></div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Targeted</div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{sentCount}</div>
+                    <div style={{ width: "100%", height: `${totalContacts > 0 ? (sentCount/totalContacts)*100 : 0}px`, background: "#a855f7", borderRadius: "4px 4px 0 0" }}></div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Sent</div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{deliveredCount}</div>
+                    <div style={{ width: "100%", height: `${totalContacts > 0 ? (deliveredCount/totalContacts)*100 : 0}px`, background: "#22c55e", borderRadius: "4px 4px 0 0" }}></div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Delivered</div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{readCount}</div>
+                    <div style={{ width: "100%", height: `${totalContacts > 0 ? (readCount/totalContacts)*100 : 0}px`, background: "#3b82f6", borderRadius: "4px 4px 0 0" }}></div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Read</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Error Breakdown */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <div style={{ background: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", height: "100%" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>Error Analysis</h3>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "16px" }}>Breakdown of message delivery failures</p>
+                
+                {analyticsData.errorList.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {analyticsData.errorList.map((err, idx) => (
+                      <div key={idx} style={{ padding: "12px", border: "1px solid var(--border-color)", borderRadius: "8px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                          <span style={{ fontWeight: "500", color: "var(--status-failed)", fontSize: "14px" }}>{err.count} {err.count === 1 ? 'failure' : 'failures'}</span>
+                          <span style={{ fontSize: "12px", color: "var(--text-muted)", background: "#f1f5f9", padding: "2px 6px", borderRadius: "12px" }}>
+                            {Math.round((err.count / failedCount) * 100)}% of errors
+                          </span>
+                        </div>
+                        <div style={{ color: "var(--text-secondary)", fontSize: "13px", lineHeight: "1.4" }}>
+                          {err.msg}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 0", color: "var(--text-muted)" }}>
+                    <CheckCircle2 size={32} color="#22c55e" style={{ opacity: 0.5, marginBottom: "12px" }} />
+                    <p style={{ fontSize: "14px", fontWeight: "500" }}>No delivery failures</p>
+                    <p style={{ fontSize: "13px" }}>All messages were processed successfully.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
         )}
 
