@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, Phone, MapPin, Plus, Trash2, X } from "lucide-react";
-import { getListContacts, deleteContact, addContactToList } from "../../lib/api";
+import { ArrowLeft, Users, Phone, MapPin, Plus, Trash2, X, Edit, AlertCircle } from "lucide-react";
+import { getListContacts, deleteContact, addContactToList, updateContact } from "../../lib/api";
 
 export default function ListContactsPage() {
   const { id } = useParams();
@@ -17,6 +17,13 @@ export default function ListContactsPage() {
   const [newPhone, setNewPhone] = useState("");
   const [newCity, setNewCity] = useState("");
   const [adding, setAdding] = useState(false);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContactId, setEditContactId] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -62,6 +69,30 @@ export default function ListContactsPage() {
     } catch (err) {
       console.error(err);
       alert("Failed to delete contact");
+    }
+  };
+
+  const handleEditClick = (contact) => {
+    setEditContactId(contact.id);
+    setEditName(contact.name || "");
+    setEditPhone(contact.phone_number || "");
+    setEditCity(contact.city || "");
+    setShowEditModal(true);
+  };
+
+  const handleUpdateContact = async (e) => {
+    e.preventDefault();
+    if (!editPhone) return;
+    setEditing(true);
+    try {
+      await updateContact(editContactId, { name: editName, phone_number: editPhone, city: editCity });
+      setShowEditModal(false);
+      fetchContacts();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to update contact");
+    } finally {
+      setEditing(false);
     }
   };
 
@@ -124,9 +155,14 @@ export default function ListContactsPage() {
                       </div>
                     </td>
                     <td style={{ padding: "16px 20px", color: "var(--text-secondary)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <Phone size={14} />
                         +{c.phone_number}
+                        {c.not_on_wp && (
+                          <span style={{ fontSize: "12px", background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", padding: "2px 8px", borderRadius: "12px", display: "flex", alignItems: "center", gap: "4px" }}>
+                            <AlertCircle size={12} /> Not on WA
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td style={{ padding: "16px 20px", color: "var(--text-secondary)" }}>
@@ -139,13 +175,22 @@ export default function ListContactsPage() {
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
                     <td style={{ padding: "16px 20px" }}>
-                      <button 
-                        onClick={() => handleDeleteContact(c.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        title="Delete Contact"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <button 
+                          onClick={() => handleEditClick(c)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                          title="Edit Contact"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteContact(c.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                          title="Delete Contact"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -185,6 +230,43 @@ export default function ListContactsPage() {
                 <button type="button" className="btn-secondary" onClick={() => setShowAddModal(false)} disabled={adding}>Cancel</button>
                 <button type="submit" className="btn-primary" disabled={adding || !newPhone}>
                   {adding ? "Adding..." : "Add Contact"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <h2 className="modal-title" style={{ margin: 0 }}>Edit Contact</h2>
+              <button 
+                onClick={() => setShowEditModal(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                disabled={editing}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateContact}>
+              <div className="form-group">
+                <label className="form-label">Name</label>
+                <input type="text" className="form-input" value={editName} onChange={e => setEditName(e.target.value)} disabled={editing} placeholder="e.g., Rahul" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mobile Number *</label>
+                <input type="text" className="form-input" value={editPhone} onChange={e => setEditPhone(e.target.value)} disabled={editing} required placeholder="10-digit number" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">City</label>
+                <input type="text" className="form-input" value={editCity} onChange={e => setEditCity(e.target.value)} disabled={editing} placeholder="e.g., Balotra" />
+              </div>
+              <div className="modal-actions" style={{ marginTop: "24px" }}>
+                <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={editing || !editPhone}>
+                  {editing ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>
