@@ -141,8 +141,19 @@ export default function SettingsPage() {
               <div className="loading-spinner" />
             </div>
           ) : healthError ? (
-            <div className="window-warning">
-              <span className="window-warning-text">{healthError}</span>
+            <div style={{ padding: "16px", borderRadius: "10px", background: "#fef2f2", border: "1px solid #fee2e2", color: "#991b1b", fontSize: "13px" }}>
+              <div style={{ fontWeight: 600, marginBottom: "4px" }}>Notice</div>
+              <div>{healthError}</div>
+            </div>
+          ) : metaHealth?.configured === false ? (
+            <div style={{ padding: "16px 20px", borderRadius: "12px", background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, color: "#334155", fontSize: "14px", marginBottom: "6px" }}>
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#f59e0b" }} />
+                Meta API Connection Ready
+              </div>
+              <p style={{ margin: 0, fontSize: "13px", color: "#64748b", lineHeight: "1.5" }}>
+                WhatsApp Cloud API credentials (Phone Number ID &amp; Access Token) can be set in your backend environment to automatically sync your live Meta quality rating and 24-hour tier limits here.
+              </p>
             </div>
           ) : metaHealth ? (
             <>

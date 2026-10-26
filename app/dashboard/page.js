@@ -49,15 +49,28 @@ export default function DashboardPage() {
   const totalInteractions = totalMessagesSent + totalMessagesReceived;
   const deliveryRateValue = parseFloat(deliveryRate);
 
-  const sentPct = totalMessagesSent > 0 ? (campaignStatus.sent / totalMessagesSent) * 100 : 0;
-  const deliveredPct = totalMessagesSent > 0 ? (campaignStatus.delivered / totalMessagesSent) * 100 : 0;
-  const readPct = totalMessagesSent > 0 ? (campaignStatus.read / totalMessagesSent) * 100 : 0;
+  const totalSent = totalMessagesSent || 0;
+  const sentCount = campaignStatus.sent || 0;
+  const deliveredCount = campaignStatus.delivered || 0;
+  const readCount = campaignStatus.read || 0;
+  const failedCount = campaignStatus.failed || 0;
+
+  const deliveredPct = totalSent > 0 ? Math.min(100, Math.round((deliveredCount / totalSent) * 100)) : 0;
+  const readPct = totalSent > 0 ? Math.min(100, Math.round((readCount / totalSent) * 100)) : 0;
+
+  const totalTracked = sentCount + deliveredCount + failedCount;
+  let donutBackground = "#f1f5f9";
+  if (totalTracked > 0) {
+    const sPct = (sentCount / totalTracked) * 100;
+    const dPct = (deliveredCount / totalTracked) * 100;
+    donutBackground = `conic-gradient(#3b82f6 0% ${sPct}%, #10b981 ${sPct}% ${sPct + dPct}%, #f59e0b ${sPct + dPct}% 100%)`;
+  }
 
   return (
     <div className="page-container" style={{ background: '#f5f7f9', padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111' }}>Welcome back, Admin! 👋</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111' }}>Welcome back! 👋</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Here's what's happening with your business today.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -135,41 +148,90 @@ export default function DashboardPage() {
 
       {/* Charts / Bottom section */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+        {/* Real Message Delivery Funnel */}
         <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '16px' }}>Message Delivery Funnel</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#64748b' }}>
-              <span>Sent</span>
-              <span style={{ fontWeight: '600', color: '#0f172a' }}>{campaignStatus.sent.toLocaleString()}</span>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#64748b', marginBottom: '6px' }}>
+                <span>Sent</span>
+                <span style={{ fontWeight: '600', color: '#0f172a' }}>{sentCount.toLocaleString()} {totalSent > 0 ? '(100%)' : ''}</span>
+              </div>
+              <div style={{ width: '100%', height: '12px', background: '#f1f5f9', borderRadius: '6px', overflow: 'hidden' }}>
+                <div style={{ width: totalSent > 0 ? '100%' : '0%', height: '100%', background: '#3b82f6', borderRadius: '6px', transition: 'width 0.6s ease' }} />
+              </div>
             </div>
-            <div style={{ width: '100%', height: '16px', background: '#3b82f6', borderRadius: '8px' }}></div>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#64748b', marginTop: '8px' }}>
-              <span>Delivered</span>
-              <span style={{ fontWeight: '600', color: '#0f172a' }}>{campaignStatus.delivered.toLocaleString()}</span>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#64748b', marginBottom: '6px' }}>
+                <span>Delivered</span>
+                <span style={{ fontWeight: '600', color: '#0f172a' }}>{deliveredCount.toLocaleString()} {totalSent > 0 ? `(${deliveredPct}%)` : ''}</span>
+              </div>
+              <div style={{ width: '100%', height: '12px', background: '#f1f5f9', borderRadius: '6px', overflow: 'hidden' }}>
+                <div style={{ width: totalSent > 0 ? `${deliveredPct}%` : '0%', height: '100%', background: '#8b5cf6', borderRadius: '6px', transition: 'width 0.6s ease' }} />
+              </div>
             </div>
-            <div style={{ width: `${Math.max(deliveredPct, 5)}%`, height: '16px', background: '#8b5cf6', borderRadius: '8px', transition: 'width 1s ease' }}></div>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#64748b', marginTop: '8px' }}>
-              <span>Read</span>
-              <span style={{ fontWeight: '600', color: '#0f172a' }}>{campaignStatus.read.toLocaleString()}</span>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#64748b', marginBottom: '6px' }}>
+                <span>Read</span>
+                <span style={{ fontWeight: '600', color: '#0f172a' }}>{readCount.toLocaleString()} {totalSent > 0 ? `(${readPct}%)` : ''}</span>
+              </div>
+              <div style={{ width: '100%', height: '12px', background: '#f1f5f9', borderRadius: '6px', overflow: 'hidden' }}>
+                <div style={{ width: totalSent > 0 ? `${readPct}%` : '0%', height: '100%', background: '#10b981', borderRadius: '6px', transition: 'width 0.6s ease' }} />
+              </div>
             </div>
-            <div style={{ width: `${Math.max(readPct, 2)}%`, height: '16px', background: '#10b981', borderRadius: '8px', transition: 'width 1s ease' }}></div>
           </div>
         </div>
         
+        {/* Real Message Status (All Time) Donut Chart */}
         <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '24px', alignSelf: 'flex-start' }}>Message Status (All Time)</h3>
-          <div style={{ width: '150px', height: '150px', borderRadius: '50%', border: '24px solid #f1f5f9', borderTopColor: '#3b82f6', borderRightColor: '#10b981', borderBottomColor: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>SENT</div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{totalMessagesSent.toLocaleString()}</div>
+          
+          <div
+            style={{
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%',
+              background: donutBackground,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
+            }}
+          >
+            <div
+              style={{
+                width: '102px',
+                height: '102px',
+                borderRadius: '50%',
+                background: '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+              }}
+            >
+              <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.04em' }}>TOTAL SENT</div>
+              <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{totalSent.toLocaleString()}</div>
             </div>
           </div>
+
           <div style={{ display: 'flex', gap: '16px', marginTop: '24px', fontSize: '12px', color: '#64748b', fontWeight: '500' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', background: '#3b82f6', borderRadius: '50%' }}></span> Sent</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '50%' }}></span> Delivered</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', background: '#f59e0b', borderRadius: '50%' }}></span> Failed ({campaignStatus.failed})</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', background: totalTracked > 0 ? '#3b82f6' : '#cbd5e1', borderRadius: '50%' }} />
+              Sent ({sentCount})
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', background: totalTracked > 0 ? '#10b981' : '#cbd5e1', borderRadius: '50%' }} />
+              Delivered ({deliveredCount})
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', background: totalTracked > 0 ? '#f59e0b' : '#cbd5e1', borderRadius: '50%' }} />
+              Failed ({failedCount})
+            </span>
           </div>
         </div>
 

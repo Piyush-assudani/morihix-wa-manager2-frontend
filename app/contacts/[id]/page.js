@@ -224,7 +224,7 @@ export default function ListContactsPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">City</label>
-                <input type="text" className="form-input" value={newCity} onChange={e => setNewCity(e.target.value)} disabled={adding} placeholder="e.g., Balotra" />
+                <input type="text" className="form-input" value={newCity} onChange={e => setNewCity(e.target.value)} disabled={adding} placeholder="e.g., Mumbai" />
               </div>
               <div className="modal-actions" style={{ marginTop: "24px" }}>
                 <button type="button" className="btn-secondary" onClick={() => setShowAddModal(false)} disabled={adding}>Cancel</button>
@@ -261,7 +261,7 @@ export default function ListContactsPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">City</label>
-                <input type="text" className="form-input" value={editCity} onChange={e => setEditCity(e.target.value)} disabled={editing} placeholder="e.g., Balotra" />
+                <input type="text" className="form-input" value={editCity} onChange={e => setEditCity(e.target.value)} disabled={editing} placeholder="e.g., Mumbai" />
               </div>
               <div className="modal-actions" style={{ marginTop: "24px" }}>
                 <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>

@@ -5,7 +5,8 @@ import { getContacts, getMessages, markMessagesAsRead } from "../lib/api";
 import { getSocket } from "../lib/socket";
 import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ShieldCheck, Zap, Lock } from "lucide-react";
+import BrandLogo from "../components/BrandLogo";
 
 const isSameMessage = (existing, incoming) =>
   (existing.id != null &&
@@ -271,15 +272,30 @@ export default function ChatPage() {
       ) : (
         <div className="chat-window" style={{ flex: 1 }}>
           <div className="chat-window-empty">
-            <div className="flex justify-center mb-4">
-              <img src="/logo.png" alt="Logo" className="w-24 h-24 object-contain rounded-2xl shadow-lg bg-white" />
+            <div style={{ marginBottom: "20px" }}>
+              <BrandLogo size={68} iconOnly />
             </div>
-            <h2>MAA AAINATH GOU SEVA SAMITI BALOTRA</h2>
-            <p>
-              Select a contact from the sidebar to view your conversation
-              history and send messages. Inbound messages will appear here in
-              real-time.
+            <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+              Enterprise WhatsApp Workspace
+            </h2>
+            <p style={{ maxWidth: "460px", color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.6", margin: "0 auto 24px" }}>
+              Select a contact from the directory to review 2-way conversation logs and dispatch live messages. All inbound inquiries trigger real-time socket updates.
             </p>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "999px",
+                background: "var(--accent-muted)",
+                color: "var(--accent)",
+                fontSize: "12px",
+                fontWeight: "600",
+              }}
+            >
+              <Lock size={14} /> End-to-End Meta Cloud Webhook Synchronized
+            </div>
           </div>
         </div>
       )}
