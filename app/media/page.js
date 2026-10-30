@@ -11,6 +11,7 @@ export default function MediaLibraryPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [imageErrors, setImageErrors] = useState({});
 
   useEffect(() => {
     fetchMedia();
@@ -137,8 +138,18 @@ export default function MediaLibraryPage() {
                 <div style={{ aspectRatio: "1/1", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                   {item.resource_type === 'video' ? (
                     <video src={normalizeMediaUrl(item.media_url)} style={{ width: "100%", height: "100%", objectFit: "cover" }} controls />
+                  ) : imageErrors[item.id] ? (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", color: "var(--text-muted)" }}>
+                      <ImageIcon size={32} style={{ opacity: 0.5 }} />
+                      <span style={{ fontSize: "11px", fontWeight: "500" }}>Image not found</span>
+                    </div>
                   ) : (
-                    <img src={normalizeMediaUrl(item.media_url)} alt={item.original_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img 
+                      src={normalizeMediaUrl(item.media_url)} 
+                      alt="" 
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={() => setImageErrors(prev => ({ ...prev, [item.id]: true }))}
+                    />
                   )}
                 </div>
                 <div style={{ padding: "12px" }}>

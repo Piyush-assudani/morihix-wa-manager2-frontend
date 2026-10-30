@@ -30,8 +30,12 @@ api.interceptors.request.use(
 
 export const normalizeMediaUrl = (url) => {
   if (!url || typeof url !== "string") return url;
-  if (url.includes("localhost:5001")) {
-    return url.replace("http://localhost:5001", API_URL);
+  const cleanApiUrl = API_URL.replace(/\/+$/, "");
+  if (url.startsWith("/uploads")) {
+    return `${cleanApiUrl}${url}`;
+  }
+  if (url.includes("localhost:") || url.includes("127.0.0.1:")) {
+    return url.replace(/http:\/\/(localhost|127\.0\.0\.1):\d+/, cleanApiUrl);
   }
   return url;
 };
