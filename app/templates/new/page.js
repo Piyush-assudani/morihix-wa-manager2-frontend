@@ -176,6 +176,12 @@ export default function NewTemplatePage() {
               </div>
             </div>
 
+            {headerType !== "NONE" && (
+              <div style={{ background: "#fef3c7", border: "1px solid #fde68a", color: "#92400e", padding: "12px 16px", borderRadius: "8px", fontSize: "13px", lineHeight: "1.5", marginBottom: "20px" }}>
+                ⚠️ <strong>Media Header Notice:</strong> Meta requires sample file verification for Image/Video/PDF templates. To create an Image header template, create it directly in <a href="https://business.facebook.com/wa/manage/message-templates" target="_blank" rel="noopener noreferrer" style={{ color: "#b45309", textDecoration: "underline", fontWeight: 600 }}>Meta WhatsApp Business Manager</a> (it will automatically appear here once approved). Or select <strong>None (Text Only)</strong> below.
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">Message Body</label>
               <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>
