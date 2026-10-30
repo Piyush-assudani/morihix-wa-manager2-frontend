@@ -28,6 +28,14 @@ api.interceptors.request.use(
 
 
 
+export const normalizeMediaUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  if (url.includes("localhost:5001")) {
+    return url.replace("http://localhost:5001", API_URL);
+  }
+  return url;
+};
+
 export const getContacts = () => api.get("/api/contacts");
 
 export const getContact = (id) => api.get(`/api/contacts/${id}`);

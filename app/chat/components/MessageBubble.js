@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { Check, CheckCheck, X, Trash2, FileText, Music, PlaySquare, Image as ImageIcon, File } from "lucide-react";
+import { normalizeMediaUrl } from "../../lib/api";
 
 export default function MessageBubble({ message, templates, onImageClick, onDelete }) {
   const isOutbound = message.direction === "outbound";
@@ -31,14 +32,15 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
 
   const renderMedia = () => {
     if (!message.media_url) return null;
-    const url = message.media_url.toLowerCase();
+    const mediaSrc = normalizeMediaUrl(message.media_url);
+    const url = mediaSrc.toLowerCase();
     
     const isAudio = url.match(/\.(mp3|wav|ogg|aac|amr|m4a)$/) || url.includes("audio") || message.message_body === "[Audio]";
     const isVideo = url.match(/\.(mp4|webm|mov)$/) || (url.includes("video/upload") && !isAudio);
     const isDocument = url.match(/\.(pdf|doc|docx|xls|xlsx|csv|txt)$/) || url.includes("raw/upload") || message.message_body === "[Document]";
 
     if (isAudio) {
-      let audioUrl = message.media_url;
+      let audioUrl = mediaSrc;
       // Safari/Mac often fails to play .ogg files from WhatsApp.
       // Cloudinary can transcode on the fly if we append .mp3 to the URL.
       if (audioUrl.includes('cloudinary.com/')) {
@@ -55,22 +57,22 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
     if (isVideo) {
       return (
         <video 
-          src={message.media_url} 
+          src={mediaSrc} 
           className="max-w-full rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity" 
           style={{ maxHeight: "200px" }} 
           controls={false}
           onClick={(e) => {
             e.preventDefault();
-            onImageClick?.({ url: message.media_url, type: 'video' });
+            onImageClick?.({ url: mediaSrc, type: 'video' });
           }}
         />
       );
     }
     
     if (isDocument) {
-      const fileName = message.media_url.split('/').pop() || "Document";
+      const fileName = mediaSrc.split('/').pop() || "Document";
       return (
-        <a href={message.media_url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", textDecoration: "none", color: "var(--text-primary)", marginBottom: "8px" }}>
+        <a href={mediaSrc} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", textDecoration: "none", color: "var(--text-primary)", marginBottom: "8px" }}>
           <FileText size={24} color="var(--accent)" />
           <span style={{ fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>{fileName}</span>
         </a>
@@ -79,9 +81,9 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
     // Default to image
     return (
       <img 
-        src={message.media_url} 
+        src={mediaSrc} 
         alt="Media" 
-        onClick={() => onImageClick?.({ url: message.media_url, type: 'image' })}
+        onClick={() => onImageClick?.({ url: mediaSrc, type: 'image' })}
         className="max-w-full rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity" 
         style={{ maxHeight: "200px", objectFit: "contain" }} 
         title="Click to view full image"

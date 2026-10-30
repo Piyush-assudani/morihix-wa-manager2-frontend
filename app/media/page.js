@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getMedia, uploadMedia, deleteMedia } from "../lib/api";
+import { getMedia, uploadMedia, deleteMedia, normalizeMediaUrl } from "../lib/api";
 import { Upload, Trash2, Image as ImageIcon, Video, FileText } from "lucide-react";
 import { useToast } from "../components/ToastProvider";
 
@@ -136,9 +136,9 @@ export default function MediaLibraryPage() {
               <div key={item.id} className="ui-card animate-fade-in" style={{ padding: "0", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
                 <div style={{ aspectRatio: "1/1", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                   {item.resource_type === 'video' ? (
-                    <video src={item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <video src={normalizeMediaUrl(item.media_url)} style={{ width: "100%", height: "100%", objectFit: "cover" }} controls />
                   ) : (
-                    <img src={item.media_url} alt={item.original_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={normalizeMediaUrl(item.media_url)} alt={item.original_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   )}
                 </div>
                 <div style={{ padding: "12px" }}>
