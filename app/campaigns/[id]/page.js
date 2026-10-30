@@ -51,14 +51,29 @@ export default function CampaignDetailPage() {
 
   const totalContacts = recipients.length || 0;
   
-  // Delivered includes read, Sent includes delivered + read + failed
+  // Delivered includes read, Sent includes successfully sent + delivered + read (Sent + Failed = Total)
   const readCount = statsMap.read || 0;
   const deliveredCount = (statsMap.delivered || 0) + readCount;
   const failedCount = statsMap.failed || 0;
-  const sentCount = (statsMap.sent || 0) + deliveredCount + failedCount;
+  const sentCount = (statsMap.sent || 0) + deliveredCount;
 
   const engagementRate = deliveredCount > 0 ? ((readCount / deliveredCount) * 100).toFixed(1) : "0.0";
   const deliveryRate = sentCount > 0 ? ((deliveredCount / sentCount) * 100).toFixed(1) : "0.0";
+
+  const template = templates?.find((t) => t.name === campaign?.template_name);
+  const header = template?.components?.find(c => c.type === "HEADER");
+  const body = template?.components?.find(c => c.type === "BODY");
+  const footer = template?.components?.find(c => c.type === "FOOTER");
+
+  const getFallbackErrorMessage = () => {
+    if (campaign?.media_id && template && (!header || !["IMAGE", "VIDEO", "DOCUMENT"].includes(header.format))) {
+      return `Template "${campaign.template_name}" does not have a media header, but media was attached to this campaign (Meta API #132000: Header parameter mismatch).`;
+    }
+    if (!campaign?.media_id && header && ["IMAGE", "VIDEO", "DOCUMENT"].includes(header.format)) {
+      return `Template "${campaign.template_name}" requires a ${header.format.toLowerCase()} header that was missing from this campaign.`;
+    }
+    return "Meta API rejected the message during dispatch (detailed error was not saved on earlier runs).";
+  };
 
   const getDerivedStatus = (status, errorMessage) => {
     if (status === "failed" && errorMessage) {
@@ -70,12 +85,13 @@ export default function CampaignDetailPage() {
 
   const getStatusBadge = (status, errorMessage) => {
     const derivedStatus = getDerivedStatus(status, errorMessage);
+    const resolvedErr = errorMessage || (status === "failed" ? getFallbackErrorMessage() : "");
     switch (derivedStatus) {
       case "read": return <span style={{ color: "#34B7F1", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Read</span>;
       case "delivered": return <span style={{ color: "var(--status-delivered)", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Delivered</span>;
       case "not-on-whatsapp": return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> Not on WA</span>;
       case "spam-filtered": return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> Spam</span>;
-      case "failed": return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }} title={errorMessage}><XCircle size={14} /> Failed</span>;
+      case "failed": return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }} title={resolvedErr}><XCircle size={14} /> Failed</span>;
       default: return <span style={{ color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px", textTransform: "capitalize" }}><Clock size={14} /> {status}</span>;
     }
   };
@@ -88,12 +104,13 @@ export default function CampaignDetailPage() {
   const analyticsData = useMemo(() => {
     if (!campaign || !recipients.length) return null;
     
+    const fallbackErr = getFallbackErrorMessage();
     const errors = {};
     recipients.forEach(r => {
       if (r.status === 'failed' && r.error_message) {
         errors[r.error_message] = (errors[r.error_message] || 0) + 1;
       } else if (r.status === 'failed') {
-        errors["Unknown Error"] = (errors["Unknown Error"] || 0) + 1;
+        errors[fallbackErr] = (errors[fallbackErr] || 0) + 1;
       }
     });
     const errorList = Object.entries(errors).map(([msg, count]) => ({ msg, count })).sort((a,b) => b.count - a.count);
@@ -124,12 +141,7 @@ export default function CampaignDetailPage() {
     }
 
     return { errorList, avgReadTimeText, validReadCount };
-  }, [campaign, recipients]);
-
-  const template = templates?.find((t) => t.name === campaign?.template_name);
-  const header = template?.components?.find(c => c.type === "HEADER");
-  const body = template?.components?.find(c => c.type === "BODY");
-  const footer = template?.components?.find(c => c.type === "FOOTER");
+  }, [campaign, recipients, template]);
 
   if (loading) {
     return <div className="page-container"><div className="loading-container"><div className="loading-spinner" /></div></div>;
@@ -375,7 +387,7 @@ export default function CampaignDetailPage() {
 
               <div style={{ background: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
                 <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>Engagement Funnel</h3>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", height: "120px", padding: "0 20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", minHeight: "160px", padding: "12px 20px 0" }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
                     <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{totalContacts}</div>
                     <div style={{ width: "100%", height: "100px", background: "#64748b", borderRadius: "4px 4px 0 0" }}></div>
@@ -383,17 +395,17 @@ export default function CampaignDetailPage() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
                     <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{sentCount}</div>
-                    <div style={{ width: "100%", height: `${totalContacts > 0 ? (sentCount/totalContacts)*100 : 0}px`, background: "#a855f7", borderRadius: "4px 4px 0 0" }}></div>
+                    <div style={{ width: "100%", height: `${totalContacts > 0 ? Math.max((sentCount/totalContacts)*100, sentCount > 0 ? 4 : 0) : 0}px`, background: "#a855f7", borderRadius: "4px 4px 0 0" }}></div>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Sent</div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
                     <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{deliveredCount}</div>
-                    <div style={{ width: "100%", height: `${totalContacts > 0 ? (deliveredCount/totalContacts)*100 : 0}px`, background: "#22c55e", borderRadius: "4px 4px 0 0" }}></div>
+                    <div style={{ width: "100%", height: `${totalContacts > 0 ? Math.max((deliveredCount/totalContacts)*100, deliveredCount > 0 ? 4 : 0) : 0}px`, background: "#22c55e", borderRadius: "4px 4px 0 0" }}></div>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Delivered</div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "60px" }}>
                     <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "bold" }}>{readCount}</div>
-                    <div style={{ width: "100%", height: `${totalContacts > 0 ? (readCount/totalContacts)*100 : 0}px`, background: "#3b82f6", borderRadius: "4px 4px 0 0" }}></div>
+                    <div style={{ width: "100%", height: `${totalContacts > 0 ? Math.max((readCount/totalContacts)*100, readCount > 0 ? 4 : 0) : 0}px`, background: "#3b82f6", borderRadius: "4px 4px 0 0" }}></div>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Read</div>
                   </div>
                 </div>

@@ -49,14 +49,24 @@ export default function NewCampaignPage() {
     fetchData();
   }, []);
 
+  const selectedTemplate = templates.find(t => t.name === templateName);
+  const headerComponent = selectedTemplate?.components?.find(c => c.type === "HEADER");
+  const requiresMediaHeader = headerComponent && ["IMAGE", "VIDEO", "DOCUMENT"].includes(headerComponent.format);
+  const requiredMediaFormat = requiresMediaHeader ? headerComponent.format : null;
+
   const handleTemplateSelect = (e) => {
     const selected = templates.find(t => t.name === e.target.value);
     if (selected) {
       setTemplateName(selected.name);
       setLanguageCode(selected.language);
+      const hdr = selected.components?.find(c => c.type === "HEADER");
+      if (!hdr || !["IMAGE", "VIDEO", "DOCUMENT"].includes(hdr.format)) {
+        setMediaFile(null);
+      }
     } else {
       setTemplateName("");
       setLanguageCode("en_US");
+      setMediaFile(null);
     }
   };
 
@@ -69,6 +79,13 @@ export default function NewCampaignPage() {
       return;
     }
 
+    if (requiresMediaHeader && !mediaFile) {
+      const msg = `Template "${templateName}" requires a ${requiredMediaFormat.toLowerCase()} header. Please attach a file.`;
+      showError(msg);
+      setError(msg);
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -78,7 +95,7 @@ export default function NewCampaignPage() {
       formData.append("template_name", templateName.trim());
       formData.append("language_code", languageCode);
       formData.append("contact_list_ids", JSON.stringify(selectedListIds));
-      if (mediaFile) {
+      if (requiresMediaHeader && mediaFile) {
         formData.append("mediaFile", mediaFile);
       }
 
@@ -182,22 +199,31 @@ export default function NewCampaignPage() {
               )}
             </div>
 
-            <div className="form-group" style={{ background: "var(--bg-tertiary)", padding: "20px", borderRadius: "12px", border: "1px dashed var(--border-color)", marginBottom: "24px" }}>
-              <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Image size={18} color="var(--accent)" />
-                Attach Media (Optional)
-              </label>
-              <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "12px" }}>
-                Only attach media if your Meta template requires a media header (Image, Video, or PDF). Max 16MB.
-              </p>
-              <input
-                type="file"
-                className="form-input"
-                style={{ padding: "8px", background: "var(--bg-primary)" }}
-                accept="image/*,video/*,application/pdf"
-                onChange={(e) => setMediaFile(e.target.files[0] || null)}
-              />
-            </div>
+            {requiresMediaHeader && (
+              <div className="form-group" style={{ background: "var(--bg-tertiary)", padding: "20px", borderRadius: "12px", border: "1px dashed var(--border-color)", marginBottom: "24px" }}>
+                <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Image size={18} color="var(--accent)" />
+                  Attach {requiredMediaFormat.charAt(0) + requiredMediaFormat.slice(1).toLowerCase()} Header (Required)
+                </label>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "12px" }}>
+                  This Meta template requires a {requiredMediaFormat.toLowerCase()} header. Max 16MB.
+                </p>
+                <input
+                  type="file"
+                  className="form-input"
+                  style={{ padding: "8px", background: "var(--bg-primary)" }}
+                  accept={
+                    requiredMediaFormat === "IMAGE"
+                      ? "image/*"
+                      : requiredMediaFormat === "VIDEO"
+                      ? "video/*"
+                      : "application/pdf"
+                  }
+                  onChange={(e) => setMediaFile(e.target.files[0] || null)}
+                  required
+                />
+              </div>
+            )}
 
             <div className="form-group">
               <label className="form-label">Select Contact Lists (Sheets)</label>
