@@ -5,8 +5,10 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, Phone, MapPin, Plus, Trash2, X, Edit, AlertCircle } from "lucide-react";
 import { getListContacts, deleteContact, addContactToList, updateContact } from "../../lib/api";
+import { useToast } from "../../components/ToastProvider";
 
 export default function ListContactsPage() {
+  const { showSuccess, showError } = useToast();
   const { id } = useParams();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,10 +54,11 @@ export default function ListContactsPage() {
       setNewName("");
       setNewPhone("");
       setNewCity("");
+      showSuccess("Contact added to list successfully!");
       fetchContacts();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || "Failed to add contact");
+      showError(err.response?.data?.error || "Failed to add contact");
     } finally {
       setAdding(false);
     }
@@ -66,9 +69,10 @@ export default function ListContactsPage() {
     try {
       await deleteContact(contactId);
       setContacts(contacts.filter(c => c.id !== contactId));
+      showSuccess("Contact deleted successfully.");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete contact");
+      showError("Failed to delete contact");
     }
   };
 
@@ -87,10 +91,11 @@ export default function ListContactsPage() {
     try {
       await updateContact(editContactId, { name: editName, phone_number: editPhone, city: editCity });
       setShowEditModal(false);
+      showSuccess("Contact details updated successfully!");
       fetchContacts();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || "Failed to update contact");
+      showError(err.response?.data?.error || "Failed to update contact");
     } finally {
       setEditing(false);
     }
@@ -132,8 +137,8 @@ export default function ListContactsPage() {
             No contacts found in this list.
           </div>
         ) : (
-          <div className="ui-card" style={{ padding: "0", overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div className="ui-card table-responsive" style={{ padding: "0", overflowX: "auto", width: "100%" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "520px" }}>
               <thead style={{ background: "var(--bg-tertiary)", borderBottom: "1px solid var(--border-color)", textAlign: "left" }}>
                 <tr>
                   <th style={{ padding: "16px 20px", fontSize: "12px", textTransform: "uppercase", color: "var(--text-muted)", fontWeight: "600" }}>Name</th>

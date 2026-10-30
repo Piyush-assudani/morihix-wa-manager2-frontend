@@ -98,6 +98,15 @@ export default function AccountHealthModal({ isOpen, onClose }) {
                 </span>
               </div>
 
+              {data.verified_name && (
+                <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+                  <span className="text-gray-500 font-medium">Verified Name</span>
+                  <span className="font-semibold text-gray-800">
+                    {data.verified_name}
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                 <span className="text-gray-500 font-medium">Phone Number</span>
                 <span className="font-medium text-gray-700">

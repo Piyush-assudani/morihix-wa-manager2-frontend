@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Plus, Megaphone, Trash2 } from "lucide-react";
 import { getCampaigns, deleteCampaign } from "../lib/api";
 import { format } from "date-fns";
+import { useToast } from "../components/ToastProvider";
 
 export default function CampaignsPage() {
+  const { showSuccess, showError } = useToast();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,9 +31,10 @@ export default function CampaignsPage() {
     try {
       await deleteCampaign(id);
       setCampaigns(campaigns.filter((c) => c.id !== id));
+      showSuccess("Campaign deleted successfully.");
     } catch (err) {
       console.error("Failed to delete campaign:", err);
-      alert("Failed to delete campaign");
+      showError(err.response?.data?.error || "Failed to delete campaign");
     }
   };
 

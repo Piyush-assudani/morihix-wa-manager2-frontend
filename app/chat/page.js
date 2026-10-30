@@ -7,6 +7,7 @@ import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
 import { MessageCircle, ShieldCheck, Zap, Lock } from "lucide-react";
 import BrandLogo from "../components/BrandLogo";
+import { useToast } from "../components/ToastProvider";
 
 const isSameMessage = (existing, incoming) =>
   (existing.id != null &&
@@ -25,6 +26,8 @@ export default function ChatPage() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+
+  const { showSuccess, showError } = useToast();
 
   // Fetch contacts
   const fetchContacts = useCallback(async () => {
@@ -90,11 +93,12 @@ export default function ChatPage() {
         setSelectedContact(null);
         setMessages([]);
       }
+      showSuccess("Contact deleted successfully.");
     } catch (err) {
       console.error("Failed to delete contact:", err);
-      alert("Failed to delete contact. Please try again.");
+      showError(err.response?.data?.error || "Failed to delete contact. Please try again.");
     }
-  }, [selectedContact]);
+  }, [selectedContact, showSuccess, showError]);
 
   // Initial load
   useEffect(() => {
@@ -246,59 +250,64 @@ export default function ChatPage() {
   });
 
   return (
-    <div style={{ display: "flex", height: "100%" }}>
-      <ChatSidebar
-        contacts={filteredContacts}
-        selectedContact={selectedContact}
-        onSelectContact={handleSelectContact}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
-        loading={loading}
-      />
-
-      {selectedContact ? (
-        <ChatWindow
-          key={selectedContact.id}
-          contact={selectedContact}
-          messages={messages}
-          windowInfo={windowInfo}
-          loading={messagesLoading}
-          onMessageSent={handleMessageSent}
-          onMessageDeleted={handleMessageDeleted}
-          onDeleteContact={handleDeleteContact}
+    <div className="chat-container" style={{ display: "flex", height: "100%", width: "100%", overflow: "hidden", position: "relative" }}>
+      <div className={`chat-pane-sidebar ${selectedContact ? "mobile-hidden" : ""}`} style={{ height: "100%", display: "flex" }}>
+        <ChatSidebar
+          contacts={filteredContacts}
+          selectedContact={selectedContact}
+          onSelectContact={handleSelectContact}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+          loading={loading}
         />
-      ) : (
-        <div className="chat-window" style={{ flex: 1 }}>
-          <div className="chat-window-empty">
-            <div style={{ marginBottom: "20px" }}>
-              <BrandLogo size={68} iconOnly />
-            </div>
-            <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "8px", letterSpacing: "-0.02em" }}>
-              Enterprise WhatsApp Workspace
-            </h2>
-            <p style={{ maxWidth: "460px", color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.6", margin: "0 auto 24px" }}>
-              Select a contact from the directory to review 2-way conversation logs and dispatch live messages. All inbound inquiries trigger real-time socket updates.
-            </p>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 16px",
-                borderRadius: "999px",
-                background: "var(--accent-muted)",
-                color: "var(--accent)",
-                fontSize: "12px",
-                fontWeight: "600",
-              }}
-            >
-              <Lock size={14} /> End-to-End Meta Cloud Webhook Synchronized
+      </div>
+
+      <div className={`chat-pane-window ${!selectedContact ? "mobile-hidden" : ""}`} style={{ flex: 1, height: "100%", minWidth: 0 }}>
+        {selectedContact ? (
+          <ChatWindow
+            key={selectedContact.id}
+            contact={selectedContact}
+            messages={messages}
+            windowInfo={windowInfo}
+            loading={messagesLoading}
+            onMessageSent={handleMessageSent}
+            onMessageDeleted={handleMessageDeleted}
+            onDeleteContact={handleDeleteContact}
+            onBack={() => setSelectedContact(null)}
+          />
+        ) : (
+          <div className="chat-window" style={{ flex: 1, width: "100%", height: "100%" }}>
+            <div className="chat-window-empty">
+              <div style={{ marginBottom: "20px" }}>
+                <BrandLogo size={68} iconOnly />
+              </div>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+                Enterprise WhatsApp Workspace
+              </h2>
+              <p style={{ maxWidth: "460px", color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.6", margin: "0 auto 24px" }}>
+                Select a contact from the directory to review 2-way conversation logs and dispatch live messages. All inbound inquiries trigger real-time socket updates.
+              </p>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 16px",
+                  borderRadius: "999px",
+                  background: "var(--accent-muted)",
+                  color: "var(--accent)",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                }}
+              >
+                <Lock size={14} /> End-to-End Meta Cloud Webhook Synchronized
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

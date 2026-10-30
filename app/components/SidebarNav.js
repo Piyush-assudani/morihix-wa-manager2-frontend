@@ -37,6 +37,15 @@ export default function SidebarNav() {
     { href: "/templates", icon: LayoutTemplate, label: "Templates" },
   ];
 
+  const mobileNavItems = [
+    { href: "/chat", icon: MessageCircle, label: "Chat" },
+    { href: "/dashboard", icon: LayoutDashboard, label: "Stats" },
+    { href: "/contacts", icon: Users, label: "Contacts" },
+    { href: "/campaigns", icon: Megaphone, label: "Campaigns" },
+    { href: "/templates", icon: LayoutTemplate, label: "Templates" },
+    { href: "/settings", icon: Settings, label: "Settings" },
+  ];
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     router.push("/login");
@@ -44,9 +53,56 @@ export default function SidebarNav() {
 
   return (
     <>
+      {/* Mobile Top Header (<= 768px) */}
+      <header className="mobile-header">
+        <Link href="/chat" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+          <BrandLogo size={32} showText />
+        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            type="button"
+            onClick={() => setIsHealthModalOpen(true)}
+            title="Meta Health"
+            style={{
+              background: "rgba(16, 185, 129, 0.12)",
+              border: "1px solid rgba(16, 185, 129, 0.25)",
+              borderRadius: "8px",
+              padding: "6px 10px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              color: "#059669",
+              cursor: "pointer",
+              fontSize: "12px",
+              fontWeight: 600,
+            }}
+          >
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
+            <Activity size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Sign Out"
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              padding: "6px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </header>
+
+      {/* Desktop Vertical Sidebar (> 768px) */}
       <nav className="sidebar-nav">
         {/* Brand Mark */}
-        <Link href="/chat" style={{ textDecoration: "none", marginBottom: "16px" }} title="WhatsPulse Enterprise">
+        <Link href="/chat" style={{ textDecoration: "none", marginBottom: "16px" }} title="Morihix Digital">
           <BrandLogo size={42} iconOnly />
         </Link>
 
@@ -113,6 +169,24 @@ export default function SidebarNav() {
         </div>
 
         <span className="nav-version">v2.4 Pro</span>
+      </nav>
+
+      {/* Mobile Bottom Navigation Bar (<= 768px) */}
+      <nav className="mobile-bottom-nav">
+        {mobileNavItems.map((item) => {
+          const isActive =
+            pathname === item.href || pathname?.startsWith(item.href + "/");
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`mobile-nav-item ${isActive ? "active" : ""}`}
+            >
+              <item.icon size={20} strokeWidth={isActive ? 2.4 : 2} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <AccountHealthModal

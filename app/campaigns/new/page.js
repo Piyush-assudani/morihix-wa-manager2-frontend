@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Megaphone, ArrowLeft, X, Image } from "lucide-react";
 import api from "../../lib/api";
+import { useToast } from "../../components/ToastProvider";
 
 export default function NewCampaignPage() {
   const router = useRouter();
+  const { showSuccess, showError } = useToast();
   const [name, setName] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [languageCode, setLanguageCode] = useState("en_US");
@@ -62,6 +64,7 @@ export default function NewCampaignPage() {
     e.preventDefault();
 
     if (!name.trim() || !templateName.trim() || selectedListIds.length === 0) {
+      showError("Please fill in campaign name, select a template, and choose at least one contact list.");
       setError("Please fill all fields and select at least one contact list");
       return;
     }
@@ -83,17 +86,18 @@ export default function NewCampaignPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setSuccess(
-        `Campaign "${res.data.campaign.name}" launched! Processing ${res.data.campaign.total_recipients} recipients...`
-      );
+      const launchMsg = `Campaign "${res.data.campaign.name}" launched successfully! Processing ${res.data.campaign.total_recipients} recipients...`;
+      setSuccess(launchMsg);
+      showSuccess(launchMsg);
 
-      
       setTimeout(() => {
         router.push("/campaigns");
       }, 2000);
     } catch (err) {
       console.error("Campaign creation failed:", err);
-      setError(err.response?.data?.error || "Failed to create campaign");
+      const errMsg = err.response?.data?.error || "Failed to create campaign";
+      setError(errMsg);
+      showError(errMsg);
     } finally {
       setSubmitting(false);
     }

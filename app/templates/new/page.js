@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Megaphone, LayoutTemplate, X, Image as ImageIcon, Video, FileText } from "lucide-react";
 import api from "../../lib/api";
+import { useToast } from "../../components/ToastProvider";
 
 export default function NewTemplatePage() {
   const router = useRouter();
+  const { showSuccess, showError } = useToast();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("MARKETING");
   const [language, setLanguage] = useState("en_US");
@@ -44,6 +46,7 @@ export default function NewTemplatePage() {
     e.preventDefault();
 
     if (!name.trim() || !bodyText.trim()) {
+      showError("Please provide a template name and message body.");
       setError("Please provide a template name and message body.");
       return;
     }
@@ -61,14 +64,18 @@ export default function NewTemplatePage() {
         buttons: buttons.length > 0 ? buttons : undefined
       });
 
-      setSuccess(`Template submitted to Meta successfully! It will appear in the templates list once approved (usually takes 1-2 minutes).`);
+      const successMsg = `Template "${name.trim()}" submitted to Meta successfully! Approval usually takes 1-2 minutes.`;
+      setSuccess(successMsg);
+      showSuccess(successMsg);
 
       setTimeout(() => {
         router.push("/templates");
-      }, 3000);
+      }, 2000);
     } catch (err) {
       console.error("Template creation failed:", err);
-      setError(err.response?.data?.error || "Failed to submit template to Meta.");
+      const errMsg = err.response?.data?.error || "Failed to submit template to Meta.";
+      setError(errMsg);
+      showError(errMsg);
     } finally {
       setSubmitting(false);
     }

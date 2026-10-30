@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { getMedia, uploadMedia, deleteMedia } from "../lib/api";
 import { Upload, Trash2, Image as ImageIcon, Video, FileText } from "lucide-react";
+import { useToast } from "../components/ToastProvider";
 
 export default function MediaLibraryPage() {
+  const { showSuccess, showError } = useToast();
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -37,9 +39,10 @@ export default function MediaLibraryPage() {
       formData.append("file", file);
       
       await uploadMedia(formData);
+      showSuccess(`File "${file.name}" uploaded successfully to media storage.`);
       await fetchMedia();
     } catch (err) {
-      setError("Failed to upload media.");
+      showError(err.response?.data?.error || "Failed to upload media.");
       console.error(err);
     } finally {
       setUploading(false);
@@ -53,8 +56,9 @@ export default function MediaLibraryPage() {
     try {
       await deleteMedia(id);
       setMedia(media.filter(m => m.id !== id));
+      showSuccess("Media file deleted successfully.");
     } catch (err) {
-      setError("Failed to delete media.");
+      showError(err.response?.data?.error || "Failed to delete media.");
       console.error(err);
     }
   };

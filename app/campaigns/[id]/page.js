@@ -314,8 +314,8 @@ export default function CampaignDetailPage() {
               </div>
             </div>
             
-            <div style={{ maxHeight: "600px", overflowY: "auto", background: "#fff" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+            <div className="table-responsive" style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto", background: "#fff", width: "100%" }}>
+              <table style={{ width: "100%", minWidth: "480px", borderCollapse: "collapse", textAlign: "left" }}>
                 <thead style={{ background: "var(--bg-tertiary)", position: "sticky", top: 0, zIndex: 1 }}>
                   <tr>
                     <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: 600, fontSize: "13px", textTransform: "uppercase" }}>Recipient</th>
@@ -351,13 +351,13 @@ export default function CampaignDetailPage() {
         )}
 
         {activeTab === "analytics" && analyticsData && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px" }}>
             
             {/* Left Column: Key Metrics */}
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               <div style={{ background: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
                 <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>Performance Insights</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px" }}>
                   <div style={{ padding: "16px", background: "#f8fafc", borderRadius: "8px" }}>
                     <div style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: "500", marginBottom: "4px" }}>Average Time to Read</div>
                     <div style={{ fontSize: "24px", fontWeight: "bold", color: "var(--accent)" }}>{analyticsData.avgReadTimeText}</div>

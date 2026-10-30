@@ -3,6 +3,8 @@
 import React from "react";
 
 export default function BrandLogo({ size = 36, showText = false, textClassName = "", iconOnly = false }) {
+  const radius = Math.round(size * 0.24);
+
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
       <div
@@ -11,53 +13,35 @@ export default function BrandLogo({ size = 36, showText = false, textClassName =
           height: `${size}px`,
           minWidth: `${size}px`,
           minHeight: `${size}px`,
-          borderRadius: `${Math.round(size * 0.3)}px`,
-          background: "linear-gradient(135deg, #10b981 0%, #059669 50%, #0284c7 100%)",
+          borderRadius: `${radius}px`,
+          boxShadow: "0 4px 12px rgba(10, 28, 68, 0.25)",
+          overflow: "hidden",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
-          position: "relative",
-          overflow: "hidden",
+          backgroundColor: "#06122c",
+          flexShrink: 0,
         }}
       >
-        {/* Subtle glass reflection highlight */}
-        <div
+        <img
+          src="/icon.png"
+          alt="Morihix Digital Logo"
+          width={size}
+          height={size}
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "45%",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%)",
-            borderTopLeftRadius: `${Math.round(size * 0.3)}px`,
-            borderTopRightRadius: `${Math.round(size * 0.3)}px`,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
           }}
         />
-        {/* Modern WhatsApp pulse SVG */}
-        <svg
-          width={Math.round(size * 0.58)}
-          height={Math.round(size * 0.58)}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))", zIndex: 1 }}
-        >
-          <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" fill="rgba(255,255,255,0.15)" />
-          <path d="M8 12h.01" />
-          <path d="M12 12h.01" />
-          <path d="M16 12h.01" />
-        </svg>
       </div>
 
       {showText && !iconOnly && (
         <div style={{ display: "flex", flexDirection: "column", textAlign: "left", lineHeight: 1.15 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ fontSize: "16px", fontWeight: "800", letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-              Whats<span style={{ color: "#10b981" }}>Pulse</span>
+              Morihix <span style={{ color: "#d97706" }}>Digital</span>
             </span>
             <span
               style={{
@@ -67,15 +51,16 @@ export default function BrandLogo({ size = 36, showText = false, textClassName =
                 letterSpacing: "0.06em",
                 padding: "2px 5px",
                 borderRadius: "4px",
-                background: "rgba(16, 185, 129, 0.12)",
-                color: "#059669",
+                background: "rgba(217, 119, 6, 0.12)",
+                color: "#d97706",
+                border: "1px solid rgba(217, 119, 6, 0.2)",
               }}
             >
               PRO
             </span>
           </div>
           <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "500", marginTop: "2px" }}>
-            Enterprise Cloud API
+            WhatsApp Automation & CRM
           </span>
         </div>
       )}

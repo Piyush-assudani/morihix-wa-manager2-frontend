@@ -68,13 +68,13 @@ export default function DashboardPage() {
 
   return (
     <div className="page-container" style={{ background: '#f5f7f9', padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111' }}>Welcome back! 👋</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Here's what's happening with your business today.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span role="img" aria-label="calendar">📅</span>
             <input 
               type="date" 
@@ -97,7 +97,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Top Cards Row 1 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
         {[
           { label: "TOTAL CONTACTS", value: totalLeads.toLocaleString(), sub: "All Time", icon: <Users size={20} color="#3b82f6" />, bg: "#eff6ff" },
           { label: "CONTACT LISTS", value: totalLists.toLocaleString(), sub: "All Time", icon: <Briefcase size={20} color="#8b5cf6" />, bg: "#f3e8ff" },
@@ -147,7 +147,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts / Bottom section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
         {/* Real Message Delivery Funnel */}
         <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '16px' }}>Message Delivery Funnel</h3>

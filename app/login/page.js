@@ -50,7 +50,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://wpautomation.moxrathore.com";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
     try {
       const res = await fetch(`${apiUrl}/api/auth/login`, {
@@ -103,7 +103,7 @@ export default function LoginPage() {
           right: 0,
           bottom: 0,
           backgroundImage:
-            "radial-gradient(at 20% 15%, rgba(16, 185, 129, 0.05) 0%, transparent 60%), radial-gradient(at 85% 80%, rgba(14, 165, 233, 0.04) 0%, transparent 60%)",
+            "radial-gradient(at 20% 15%, rgba(15, 59, 168, 0.08) 0%, transparent 60%), radial-gradient(at 85% 80%, rgba(217, 119, 6, 0.06) 0%, transparent 60%)",
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -209,7 +209,7 @@ export default function LoginPage() {
                 }}
               >
                 The Intelligent Messaging Engine <br />
-                <span style={{ color: "#059669" }}>For Modern Enterprises</span>
+                <span style={{ color: "#d97706" }}>For Modern Enterprises</span>
               </h1>
 
               <p
@@ -231,15 +231,18 @@ export default function LoginPage() {
                 position: "relative",
                 borderRadius: "18px",
                 overflow: "hidden",
-                border: "1px solid rgba(0, 0, 0, 0.08)",
+                border: "1px solid rgba(15, 59, 168, 0.15)",
                 boxShadow:
-                  "0 20px 35px -10px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02)",
-                backgroundColor: "#ffffff",
+                  "0 20px 40px -10px rgba(6, 18, 44, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05)",
+                backgroundColor: "#06122c",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               <Image
-                src="/login_hero.jpg"
-                alt="WhatsPulse Enterprise Platform Preview"
+                src="/morihix_logo.webp"
+                alt="Morihix Digital Platform Preview"
                 width={700}
                 height={525}
                 priority
@@ -247,8 +250,9 @@ export default function LoginPage() {
                   width: "100%",
                   height: "auto",
                   maxHeight: "360px",
-                  objectFit: "cover",
+                  objectFit: "contain",
                   display: "block",
+                  backgroundColor: "#06122c",
                 }}
               />
             </div>
@@ -385,8 +389,8 @@ export default function LoginPage() {
                         transition: "border-color 0.15s ease, box-shadow 0.15s ease",
                       }}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#059669";
-                        e.target.style.boxShadow = "0 0 0 3px rgba(5, 150, 105, 0.12)";
+                        e.target.style.borderColor = "#0f3ba8";
+                        e.target.style.boxShadow = "0 0 0 3px rgba(15, 59, 168, 0.15)";
                       }}
                       onBlur={(e) => {
                         e.target.style.borderColor = "#cbd5e1";
@@ -444,8 +448,8 @@ export default function LoginPage() {
                         transition: "border-color 0.15s ease, box-shadow 0.15s ease",
                       }}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#059669";
-                        e.target.style.boxShadow = "0 0 0 3px rgba(5, 150, 105, 0.12)";
+                        e.target.style.borderColor = "#0f3ba8";
+                        e.target.style.boxShadow = "0 0 0 3px rgba(15, 59, 168, 0.15)";
                       }}
                       onBlur={(e) => {
                         e.target.style.borderColor = "#cbd5e1";
@@ -499,7 +503,7 @@ export default function LoginPage() {
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                       style={{
-                        accentColor: "#059669",
+                        accentColor: "#0f3ba8",
                         width: "15px",
                         height: "15px",
                         cursor: "pointer",
@@ -511,7 +515,7 @@ export default function LoginPage() {
                   <a
                     href="mailto:support@morihix.com"
                     style={{
-                      color: "#059669",
+                      color: "#0f3ba8",
                       textDecoration: "none",
                       fontWeight: "500",
                     }}
@@ -526,9 +530,9 @@ export default function LoginPage() {
                   disabled={loading}
                   style={{
                     width: "100%",
-                    padding: "12px 20px",
+                    padding: "13px 20px",
                     borderRadius: "10px",
-                    backgroundColor: "#059669",
+                    background: "linear-gradient(135deg, #0d2b6b 0%, #0f3ba8 60%, #1d4ed8 100%)",
                     color: "#ffffff",
                     border: "none",
                     fontSize: "14px",
@@ -538,14 +542,15 @@ export default function LoginPage() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "8px",
-                    transition: "background-color 0.15s ease, transform 0.1s ease",
+                    transition: "transform 0.1s ease, box-shadow 0.15s ease",
+                    boxShadow: "0 4px 14px rgba(15, 59, 168, 0.35)",
                     opacity: loading ? 0.8 : 1,
                   }}
                   onMouseEnter={(e) => {
-                    if (!loading) e.currentTarget.style.backgroundColor = "#047857";
+                    if (!loading) e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 59, 168, 0.45)";
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) e.currentTarget.style.backgroundColor = "#059669";
+                    if (!loading) e.currentTarget.style.boxShadow = "0 4px 14px rgba(15, 59, 168, 0.35)";
                   }}
                 >
                   {loading ? (
@@ -610,15 +615,15 @@ export default function LoginPage() {
           gap: "12px",
         }}
       >
-        <span>&copy; 2026 MAA AAINATH GOU SEVA SAMITI BALOTRA. All rights reserved.</span>
+        <span>&copy; 2026 Morihix Digital. All rights reserved.</span>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <a
             href="https://morihix.com"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#059669", textDecoration: "none", fontWeight: "600" }}
+            style={{ color: "#0f3ba8", textDecoration: "none", fontWeight: "600" }}
           >
-            Powered by Morihix Private Limited
+            Powered by Morihix Digital
           </a>
           <span>&bull;</span>
           <a

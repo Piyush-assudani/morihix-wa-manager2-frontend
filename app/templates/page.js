@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { getTemplates } from "../lib/api";
 import { LayoutTemplate, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { useToast } from "../components/ToastProvider";
 
 export default function TemplateLibraryPage() {
+  const { showSuccess, showError } = useToast();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,9 +50,9 @@ export default function TemplateLibraryPage() {
           <button onClick={fetchTemplates} disabled={loading} className="btn-secondary">
             Refresh
           </button>
-          <a href="/templates/new" className="btn-primary">
+          <Link href="/templates/new" className="btn-primary">
             + Create Template
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -104,9 +107,9 @@ export default function TemplateLibraryPage() {
             <p style={{ fontSize: "14px", maxWidth: "400px", lineHeight: 1.6, marginBottom: "20px" }}>
               Create your first custom template to start sending messages.
             </p>
-            <a href="/templates/new" className="btn-primary">
+            <Link href="/templates/new" className="btn-primary">
               Create Template
-            </a>
+            </Link>
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>

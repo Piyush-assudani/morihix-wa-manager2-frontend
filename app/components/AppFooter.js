@@ -12,6 +12,7 @@ export default function AppFooter() {
 
   return (
     <footer
+      className="app-footer"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -38,7 +39,7 @@ export default function AppFooter() {
         <span style={{ fontWeight: 500 }}>Meta Cloud API Active</span>
       </div>
       <div style={{ textAlign: "center", color: "var(--text-secondary)" }}>
-        &copy; 2026 MAA AAINATH GOU SEVA SAMITI BALOTRA. All rights reserved.
+        &copy; 2026 Morihix Digital. All rights reserved.
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         <a
@@ -48,7 +49,7 @@ export default function AppFooter() {
           className="footer-link"
           style={{ fontWeight: 600, color: "var(--accent)" }}
         >
-          Powered by Morihix Private Limited
+          Powered by Morihix Digital
         </a>
         <span>&bull;</span>
         <a

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Activity, AlertTriangle, CheckCircle2, Eye, EyeOff, RefreshCw, Save, ShieldAlert, UserCog } from "lucide-react";
 import api, { getAccountHealth } from "../lib/api";
+import { useToast } from "../components/ToastProvider";
 
 const getTierDescription = (tier) => {
   const tierDescriptions = {
@@ -30,6 +31,7 @@ const getQualityStyle = (quality) => {
 };
 
 export default function SettingsPage() {
+  const { showSuccess, showError } = useToast();
   const [metaHealth, setMetaHealth] = useState(null);
   const [healthLoading, setHealthLoading] = useState(true);
   const [healthError, setHealthError] = useState("");
@@ -94,11 +96,14 @@ export default function SettingsPage() {
       });
 
       setSuccess("Profile updated successfully! Please use new credentials on your next login.");
+      showSuccess("Profile updated successfully! Use your new credentials on your next login.");
       setCurrentPassword("");
       setNewPassword("");
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.error || "Failed to update profile.");
+      const errMsg = err.response?.data?.error || "Failed to update profile.";
+      setError(errMsg);
+      showError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -193,6 +198,7 @@ export default function SettingsPage() {
               <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "16px" }}>
                 Limits describe business-initiated conversations per rolling 24 hours, as reported by Meta.
                 {metaHealth.display_phone_number ? ` Phone: ${metaHealth.display_phone_number}.` : ""}
+                {metaHealth.verified_name ? ` • Verified Name: ${metaHealth.verified_name}.` : ""}
               </p>
             </>
           ) : (

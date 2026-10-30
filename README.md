@@ -1,6 +1,6 @@
-# WP Automation Frontend
+# Morihix Digital Frontend
 
-This is the web-based user interface for the WhatsApp Automation system, built with Next.js and React. It provides a sleek, modern dashboard for managing contacts, sending campaigns, and replying to users.
+This is the web-based user interface for Morihix Digital, built with Next.js and React. It provides a sleek, modern dashboard for managing contacts, sending campaigns, and replying to users.
 
 ## Features
 
@@ -8,7 +8,7 @@ This is the web-based user interface for the WhatsApp Automation system, built w
 - **Campaign Manager:** Create campaigns, select approved Meta templates, and send mass messages.
 - **Contact Management:** Upload contacts via Excel/CSV, manage contact lists, edit contacts, and view "Not on WA" statuses.
 - **Live Chat Interface:** Real-time chat interface for handling 1-on-1 conversations over the WhatsApp API.
-- **Responsive Design:** Optimized for both desktop and mobile web viewing.
+- **Responsive Design:** Optimized for desktop, tablet, and mobile web viewing down to 320px screens.
 
 ## Setup Instructions
 
@@ -18,9 +18,9 @@ This is the web-based user interface for the WhatsApp Automation system, built w
    ```
 
 2. **API Configuration:**
-   Ensure that the backend API URL is correctly configured in `app/lib/api.js`.
-   ```javascript
-   const API_URL = "https://wpautomation.moxrathore.com"; // Change for local dev if needed
+   Ensure that the backend API URL is configured via environment variables (`NEXT_PUBLIC_API_URL`) or in `app/lib/api.js`.
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:5001
    ```
 
 3. **Run the development server:**

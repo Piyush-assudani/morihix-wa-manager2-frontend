@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import { ArrowDown, Phone, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, Phone, Trash2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import { deleteMessage } from "../../lib/api";
@@ -15,6 +15,7 @@ export default function ChatWindow({
   onMessageSent,
   onMessageDeleted,
   onDeleteContact,
+  onBack,
 }) {
   const chatMessagesRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -165,8 +166,30 @@ export default function ChatWindow({
     <div className="chat-window">
       {}
       <div className="chat-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div className="contact-avatar">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="chat-back-btn"
+              title="Back to contacts"
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                padding: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "8px",
+                flexShrink: 0,
+              }}
+            >
+              <ArrowLeft size={20} />
+            </button>
+          )}
+          <div className="contact-avatar" style={{ flexShrink: 0 }}>
             {contact.name
               ? contact.name
                   .split(" ")

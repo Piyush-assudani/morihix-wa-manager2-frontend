@@ -5,8 +5,10 @@ import { Upload, Users, FileSpreadsheet, X, CheckCircle2, Trash2, Plus } from "l
 import Link from "next/link";
 import api, { deleteContactList } from "../lib/api";
 import { format } from "date-fns";
+import { useToast } from "../components/ToastProvider";
 
 export default function ContactsPage() {
+  const { showSuccess, showError } = useToast();
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -42,9 +44,10 @@ export default function ContactsPage() {
     try {
       await deleteContactList(id);
       setLists(lists.filter(l => l.id !== id));
+      showSuccess("Contact list deleted successfully.");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete contact list");
+      showError(err.response?.data?.error || "Failed to delete contact list");
     }
   };
 
@@ -93,6 +96,7 @@ export default function ContactsPage() {
       });
 
       setSuccess("List saved successfully!");
+      showSuccess(`Contact list "${listName.trim()}" saved successfully!`);
       fetchLists();
       
       setTimeout(() => {
@@ -121,6 +125,7 @@ export default function ContactsPage() {
     try {
       await api.post("/api/contact_lists/manual", { name: manualListName.trim() });
       setSuccess("Empty list created successfully!");
+      showSuccess(`List "${manualListName.trim()}" created successfully!`);
       fetchLists();
       
       setTimeout(() => {

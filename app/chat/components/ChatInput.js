@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, AlertTriangle, LayoutTemplate, Paperclip } from "lucide-react";
 import { sendMessage, sendTemplate, getTemplates, sendMedia } from "../../lib/api";
+import { useToast } from "../../components/ToastProvider";
 
 export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
+  const { showError, showWarning, showSuccess } = useToast();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
@@ -48,7 +50,9 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
       console.error("Send failed:", err);
       if (err.response?.data?.window_closed) {
         // Window just closed - UI will update via socket
-        alert("24-hour window has closed. Please send a template message.");
+        showWarning("24-hour window has closed. Please send a template message to restart the conversation.");
+      } else {
+        showError(err.response?.data?.error || "Failed to send message. Please try again.");
       }
     } finally {
       setSending(false);
@@ -83,9 +87,10 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
     try {
       const res = await sendMedia(contactId, selectedFile);
       onMessageSent(res.data);
+      showSuccess("Media dispatched successfully.");
     } catch (err) {
       console.error("Media send failed:", err);
-      alert(err.response?.data?.error || "Failed to send media");
+      showError(err.response?.data?.error || "Failed to send media");
     } finally {
       setSending(false);
       clearSelectedFile();
@@ -117,7 +122,7 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
       const headerComp = selectedTemplate.components?.find(c => c.type === "HEADER");
       if (headerComp && ["IMAGE", "VIDEO", "DOCUMENT"].includes(headerComp.format)) {
         if (!templateParams.header_media) {
-          alert(`Please provide a ${headerComp.format} URL`);
+          showError(`Please provide a ${headerComp.format} URL`);
           return;
         }
         apiComponents.push({
@@ -137,7 +142,7 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
         const bodyParams = [];
         for (let i = 1; i <= count; i++) {
           if (!templateParams[`body_${i}`]) {
-            alert(`Please provide a value for {{${i}}}`);
+            showError(`Please provide a value for {{${i}}}`);
             return;
           }
           bodyParams.push({
@@ -156,13 +161,14 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
     try {
       const res = await sendTemplate(contactId, templateName.trim(), languageCode, apiComponents);
       onMessageSent(res.data);
+      showSuccess(`Template "${templateName}" sent successfully!`);
       setTemplateName("");
       setSelectedTemplate(null);
       setTemplateParams({});
       setShowTemplateModal(false);
     } catch (err) {
       console.error("Template send failed:", err);
-      alert(err.response?.data?.error || "Failed to send template");
+      showError(err.response?.data?.error || "Failed to send template");
     } finally {
       setTemplateSending(false);
     }
