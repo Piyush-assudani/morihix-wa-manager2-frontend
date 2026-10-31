@@ -66,6 +66,28 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
     }
   };
 
+  const handlePaste = (e) => {
+    if (isWindowClosed) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          if (filePreviewUrlRef.current) URL.revokeObjectURL(filePreviewUrlRef.current);
+          const previewUrl = URL.createObjectURL(file);
+          filePreviewUrlRef.current = previewUrl;
+          setFilePreviewUrl(previewUrl);
+          setSelectedFile(file);
+          setShowFileModal(true);
+          return;
+        }
+      }
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file || isWindowClosed) return;
@@ -204,6 +226,7 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           disabled={isWindowClosed || sending}
           rows={1}
         />
