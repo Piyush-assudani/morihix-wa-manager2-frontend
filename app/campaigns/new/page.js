@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Megaphone, ArrowLeft, X, Image } from "lucide-react";
-import api from "../../lib/api";
+import { Megaphone, ArrowLeft, X, Image as ImageIcon, FolderOpen, Upload } from "lucide-react";
+import api, { normalizeMediaUrl } from "../../lib/api";
 import { useToast } from "../../components/ToastProvider";
+import MediaPickerModal from "../../components/MediaPickerModal";
 
 export default function NewCampaignPage() {
   const router = useRouter();
@@ -15,6 +16,8 @@ export default function NewCampaignPage() {
   const [languageCode, setLanguageCode] = useState("en_US");
   const [selectedListIds, setSelectedListIds] = useState([]);
   const [mediaFile, setMediaFile] = useState(null);
+  const [selectedGalleryMedia, setSelectedGalleryMedia] = useState(null);
+  const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
   
   const [templates, setTemplates] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
@@ -62,11 +65,13 @@ export default function NewCampaignPage() {
       const hdr = selected.components?.find(c => c.type === "HEADER");
       if (!hdr || !["IMAGE", "VIDEO", "DOCUMENT"].includes(hdr.format)) {
         setMediaFile(null);
+        setSelectedGalleryMedia(null);
       }
     } else {
       setTemplateName("");
       setLanguageCode("en_US");
       setMediaFile(null);
+      setSelectedGalleryMedia(null);
     }
   };
 
@@ -79,8 +84,8 @@ export default function NewCampaignPage() {
       return;
     }
 
-    if (requiresMediaHeader && !mediaFile) {
-      const msg = `Template "${templateName}" requires a ${requiredMediaFormat.toLowerCase()} header. Please attach a file.`;
+    if (requiresMediaHeader && !mediaFile && !selectedGalleryMedia) {
+      const msg = `Template "${templateName}" requires a ${requiredMediaFormat.toLowerCase()} header. Please select from Media Gallery or attach a file.`;
       showError(msg);
       setError(msg);
       return;
@@ -95,8 +100,16 @@ export default function NewCampaignPage() {
       formData.append("template_name", templateName.trim());
       formData.append("language_code", languageCode);
       formData.append("contact_list_ids", JSON.stringify(selectedListIds));
-      if (requiresMediaHeader && mediaFile) {
-        formData.append("mediaFile", mediaFile);
+      if (requiresMediaHeader) {
+        if (mediaFile) {
+          formData.append("mediaFile", mediaFile);
+        } else if (selectedGalleryMedia) {
+          formData.append("media_url", selectedGalleryMedia.media_url);
+          if (selectedGalleryMedia.meta_media_id) {
+            formData.append("media_id", selectedGalleryMedia.meta_media_id);
+          }
+          formData.append("media_type", (selectedGalleryMedia.resource_type || requiredMediaFormat || "image").toLowerCase());
+        }
       }
 
       const res = await api.post("/api/campaigns", formData, {
@@ -200,28 +213,114 @@ export default function NewCampaignPage() {
             </div>
 
             {requiresMediaHeader && (
-              <div className="form-group" style={{ background: "var(--bg-tertiary)", padding: "20px", borderRadius: "12px", border: "1px dashed var(--border-color)", marginBottom: "24px" }}>
-                <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Image size={18} color="var(--accent)" />
-                  Attach {requiredMediaFormat.charAt(0) + requiredMediaFormat.slice(1).toLowerCase()} Header (Required)
-                </label>
-                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "12px" }}>
-                  This Meta template requires a {requiredMediaFormat.toLowerCase()} header. Max 16MB.
+              <div className="form-group" style={{ background: "var(--bg-tertiary)", padding: "20px", borderRadius: "14px", border: "1px dashed var(--border-color)", marginBottom: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
+                    <ImageIcon size={18} color="var(--accent)" />
+                    Select {requiredMediaFormat.charAt(0) + requiredMediaFormat.slice(1).toLowerCase()} Header (Required)
+                  </label>
+                  <span style={{ fontSize: "11px", fontWeight: "600", padding: "3px 8px", background: "var(--accent-glow)", color: "var(--accent)", borderRadius: "6px" }}>
+                    Header Media
+                  </span>
+                </div>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "16px" }}>
+                  This Meta template requires a {requiredMediaFormat.toLowerCase()} in the message header. You can pick an image from your software&apos;s Media Gallery or upload from your device.
                 </p>
-                <input
-                  type="file"
-                  className="form-input"
-                  style={{ padding: "8px", background: "var(--bg-primary)" }}
-                  accept={
-                    requiredMediaFormat === "IMAGE"
-                      ? "image/*"
-                      : requiredMediaFormat === "VIDEO"
-                      ? "video/*"
-                      : "application/pdf"
-                  }
-                  onChange={(e) => setMediaFile(e.target.files[0] || null)}
-                  required
-                />
+
+                {/* Selected Gallery Media Card */}
+                {selectedGalleryMedia ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", background: "var(--bg-primary)", padding: "12px 14px", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "8px" }}>
+                    <img
+                      src={normalizeMediaUrl(selectedGalleryMedia.media_url)}
+                      alt="Selected"
+                      style={{ width: "64px", height: "64px", borderRadius: "8px", objectFit: "cover" }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {selectedGalleryMedia.original_name || "Gallery Media"}
+                      </div>
+                      <span style={{ fontSize: "11px", color: "var(--secondary-accent)", fontWeight: "500", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                        ✓ Selected from Media Gallery
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ fontSize: "12px", padding: "6px 12px" }}
+                        onClick={() => setIsMediaPickerOpen(true)}
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "6px" }}
+                        onClick={() => setSelectedGalleryMedia(null)}
+                        title="Remove"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ) : mediaFile ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", background: "var(--bg-primary)", padding: "12px 14px", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "8px" }}>
+                    <div style={{ width: "64px", height: "64px", borderRadius: "8px", background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
+                      <ImageIcon size={28} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {mediaFile.name}
+                      </div>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                        {(mediaFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload from device
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "6px" }}
+                      onClick={() => setMediaFile(null)}
+                      title="Remove"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px", padding: "10px 18px" }}
+                      onClick={() => setIsMediaPickerOpen(true)}
+                    >
+                      <FolderOpen size={16} />
+                      <span>Choose from Media Gallery</span>
+                    </button>
+
+                    <label
+                      className="btn-secondary"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px", padding: "10px 18px", cursor: "pointer" }}
+                    >
+                      <Upload size={16} />
+                      <span>Upload from Device</span>
+                      <input
+                        type="file"
+                        style={{ display: "none" }}
+                        accept={
+                          requiredMediaFormat === "IMAGE"
+                            ? "image/*"
+                            : requiredMediaFormat === "VIDEO"
+                            ? "video/*"
+                            : "application/pdf"
+                        }
+                        onChange={(e) => {
+                          const file = e.target.files[0] || null;
+                          setMediaFile(file);
+                          setSelectedGalleryMedia(null);
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
             )}
 
@@ -289,6 +388,17 @@ export default function NewCampaignPage() {
           </form>
         </div>
       </div>
+
+      <MediaPickerModal
+        isOpen={isMediaPickerOpen}
+        onClose={() => setIsMediaPickerOpen(false)}
+        onSelect={(asset) => {
+          setSelectedGalleryMedia(asset);
+          setMediaFile(null);
+        }}
+        mediaType={requiredMediaFormat ? requiredMediaFormat.toLowerCase() : "image"}
+        title={`Select ${requiredMediaFormat ? requiredMediaFormat.charAt(0) + requiredMediaFormat.slice(1).toLowerCase() : "Media"} from Gallery`}
+      />
     </div>
   );
 }

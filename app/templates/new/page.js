@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Megaphone, LayoutTemplate, X, Image as ImageIcon, Video, FileText } from "lucide-react";
-import api from "../../lib/api";
+import { ArrowLeft, Megaphone, LayoutTemplate, X, Image as ImageIcon, Video, FileText, FolderOpen, Upload } from "lucide-react";
+import api, { normalizeMediaUrl } from "../../lib/api";
 import { useToast } from "../../components/ToastProvider";
+import MediaPickerModal from "../../components/MediaPickerModal";
 
 export default function NewTemplatePage() {
   const router = useRouter();
@@ -16,6 +17,8 @@ export default function NewTemplatePage() {
   const [headerType, setHeaderType] = useState("NONE");
   const [sampleFile, setSampleFile] = useState(null);
   const [samplePreview, setSamplePreview] = useState(null);
+  const [selectedGalleryMedia, setSelectedGalleryMedia] = useState(null);
+  const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
   const [bodyText, setBodyText] = useState("");
   const [buttons, setButtons] = useState([]);
 
@@ -79,6 +82,8 @@ export default function NewTemplatePage() {
       }
       if (sampleFile) {
         formData.append("sampleFile", sampleFile);
+      } else if (selectedGalleryMedia) {
+        formData.append("sampleUrl", selectedGalleryMedia.media_url);
       }
 
       await api.post("/api/templates", formData, {
@@ -204,27 +209,118 @@ export default function NewTemplatePage() {
             </div>
 
             {headerType !== "NONE" && (
-              <div style={{ background: "var(--bg-tertiary)", padding: "16px", borderRadius: "10px", border: "1px dashed var(--border-color)", marginBottom: "20px" }}>
-                <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                  <ImageIcon size={16} color="var(--accent)" />
-                  Sample {headerType === "IMAGE" ? "Image" : headerType === "VIDEO" ? "Video" : "Document"} (Optional)
-                </label>
-                <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "10px" }}>
-                  Attach a sample {headerType.toLowerCase()} for Meta reviewers to see your header, or leave empty to auto-generate sample.
+              <div style={{ background: "var(--bg-tertiary)", padding: "18px", borderRadius: "12px", border: "1px dashed var(--border-color)", marginBottom: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
+                    <ImageIcon size={16} color="var(--accent)" />
+                    Sample {headerType === "IMAGE" ? "Image" : headerType === "VIDEO" ? "Video" : "Document"} (Optional)
+                  </label>
+                  <span style={{ fontSize: "11px", fontWeight: "600", padding: "2px 8px", background: "var(--accent-glow)", color: "var(--accent)", borderRadius: "6px" }}>
+                    Optional
+                  </span>
+                </div>
+                <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px", lineHeight: "1.5" }}>
+                  💡 <strong>Image dalna mandatory nahi hai:</strong> Agar aap koi sample select nahi karenge, toh Meta approval ke liye automatically transparent sample generate ho jayega. Actual campaign run karte waqt aap apni manpasand image choose kar sakte hain.
                 </p>
-                <input
-                  type="file"
-                  className="form-input"
-                  style={{ padding: "8px", background: "var(--bg-primary)" }}
-                  accept={
-                    headerType === "IMAGE"
-                      ? "image/*"
-                      : headerType === "VIDEO"
-                      ? "video/*"
-                      : "application/pdf"
-                  }
-                  onChange={handleSampleFileChange}
-                />
+
+                {selectedGalleryMedia ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-primary)", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
+                    <img
+                      src={normalizeMediaUrl(selectedGalleryMedia.media_url)}
+                      alt="Selected"
+                      style={{ width: "54px", height: "54px", borderRadius: "8px", objectFit: "cover" }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {selectedGalleryMedia.original_name || "Gallery Media"}
+                      </div>
+                      <span style={{ fontSize: "11px", color: "var(--secondary-accent)", fontWeight: "500" }}>
+                        ✓ Selected from Media Gallery
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ fontSize: "12px", padding: "4px 10px" }}
+                        onClick={() => setIsMediaPickerOpen(true)}
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "4px" }}
+                        onClick={() => {
+                          setSelectedGalleryMedia(null);
+                          setSamplePreview(null);
+                        }}
+                        title="Remove"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ) : sampleFile ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-primary)", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
+                    <div style={{ width: "54px", height: "54px", borderRadius: "8px", background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
+                      <ImageIcon size={24} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {sampleFile.name}
+                      </div>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                        {(sampleFile.size / (1024 * 1024)).toFixed(2)} MB • Device File
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "4px" }}
+                      onClick={() => {
+                        setSampleFile(null);
+                        setSamplePreview(null);
+                      }}
+                      title="Remove"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", padding: "8px 14px" }}
+                      onClick={() => setIsMediaPickerOpen(true)}
+                    >
+                      <FolderOpen size={15} />
+                      <span>Choose from Media Gallery</span>
+                    </button>
+
+                    <label
+                      className="btn-secondary"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", padding: "8px 14px", cursor: "pointer" }}
+                    >
+                      <Upload size={15} />
+                      <span>Upload from Device</span>
+                      <input
+                        type="file"
+                        style={{ display: "none" }}
+                        accept={
+                          headerType === "IMAGE"
+                            ? "image/*"
+                            : headerType === "VIDEO"
+                            ? "video/*"
+                            : "application/pdf"
+                        }
+                        onChange={(e) => {
+                          handleSampleFileChange(e);
+                          setSelectedGalleryMedia(null);
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
             )}
 
@@ -363,6 +459,18 @@ export default function NewTemplatePage() {
           </div>
         </div>
       </div>
+
+      <MediaPickerModal
+        isOpen={isMediaPickerOpen}
+        onClose={() => setIsMediaPickerOpen(false)}
+        onSelect={(asset) => {
+          setSelectedGalleryMedia(asset);
+          setSampleFile(null);
+          setSamplePreview(normalizeMediaUrl(asset.media_url));
+        }}
+        mediaType={headerType === "VIDEO" ? "video" : headerType === "DOCUMENT" ? "document" : "image"}
+        title={`Select Sample ${headerType === "VIDEO" ? "Video" : headerType === "DOCUMENT" ? "Document" : "Image"} from Gallery`}
+      />
     </div>
   );
 }
