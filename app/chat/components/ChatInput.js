@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, AlertTriangle, LayoutTemplate, Paperclip } from "lucide-react";
+import { Send, AlertTriangle, LayoutTemplate, Paperclip, Image as ImageIcon } from "lucide-react";
 import { sendMessage, sendTemplate, getTemplates, sendMedia } from "../../lib/api";
 import { useToast } from "../../components/ToastProvider";
 
@@ -346,6 +346,44 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
                   }
                   return null;
                 })}
+              </div>
+            )}
+
+            {selectedTemplate && (
+              <div style={{ marginTop: "18px", padding: "14px", background: "#e5ddd5", borderRadius: "12px", border: "1px solid #d1d5db" }}>
+                <div style={{ fontSize: "11px", fontWeight: "600", color: "#075e54", marginBottom: "8px", textTransform: "uppercase" }}>
+                  Live Message Preview:
+                </div>
+                <div style={{ background: "white", borderRadius: "8px", padding: "10px", boxShadow: "0 1px 2px rgba(0,0,0,0.1)", maxWidth: "100%" }}>
+                  {selectedTemplate.components?.find((c) => c.type === "HEADER")?.format === "IMAGE" && (
+                    <div style={{ width: "100%", background: "#f1f5f9", borderRadius: "6px", marginBottom: "8px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {templateParams["header_media"] ? (
+                        <img src={templateParams["header_media"]} alt="Header" style={{ width: "100%", maxHeight: "200px", objectFit: "contain", borderRadius: "6px" }} />
+                      ) : (
+                        <div style={{ padding: "20px 0", color: "#64748b", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <ImageIcon size={18} />
+                          <span>Image Header</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedTemplate.components?.find((c) => c.type === "BODY") && (
+                    <div style={{ fontSize: "13px", color: "#111", whiteSpace: "pre-wrap", lineHeight: "1.4" }}>
+                      {selectedTemplate.components
+                        .find((c) => c.type === "BODY")
+                        .text.replace(/\{\{(\d+)\}\}/g, (_, num) => templateParams[`body_${num}`] || `{{${num}}}`)}
+                    </div>
+                  )}
+
+                  {selectedTemplate.components?.find((c) => c.type === "FOOTER") && (
+                    <div style={{ fontSize: "11px", color: "#667781", marginTop: "4px" }}>
+                      {selectedTemplate.components.find((c) => c.type === "FOOTER").text}
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: "10px", color: "#667781", textAlign: "right", marginTop: "4px" }}>12:00 PM</div>
+                </div>
               </div>
             )}
 

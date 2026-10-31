@@ -52,10 +52,27 @@ export default function NewCampaignPage() {
     fetchData();
   }, []);
 
-  const selectedTemplate = templates.find(t => t.name === templateName);
-  const headerComponent = selectedTemplate?.components?.find(c => c.type === "HEADER");
+  const selectedTemplate = templates.find((t) => t.name === templateName);
+  const headerComponent = selectedTemplate?.components?.find((c) => c.type === "HEADER");
+  const bodyComponent = selectedTemplate?.components?.find((c) => c.type === "BODY");
+  const footerComponent = selectedTemplate?.components?.find((c) => c.type === "FOOTER");
+  const buttonsComponent = selectedTemplate?.components?.find((c) => c.type === "BUTTONS");
+
   const requiresMediaHeader = headerComponent && ["IMAGE", "VIDEO", "DOCUMENT"].includes(headerComponent.format);
   const requiredMediaFormat = requiresMediaHeader ? headerComponent.format : null;
+
+  let previewMediaUrl = null;
+  if (selectedGalleryMedia) {
+    previewMediaUrl = normalizeMediaUrl(selectedGalleryMedia.media_url);
+  } else if (mediaFile && mediaFile.type?.startsWith("image/")) {
+    previewMediaUrl = URL.createObjectURL(mediaFile);
+  } else if (headerComponent?.example?.header_handle?.[0]?.startsWith("http")) {
+    previewMediaUrl = headerComponent.example.header_handle[0];
+  }
+
+  const previewBodyText = bodyComponent?.text
+    ? bodyComponent.text.replace(/\{\{1\}\}/g, "Rahul Sharma").replace(/\{\{2\}\}/g, "New Delhi").replace(/\{\{\d+\}\}/g, "...")
+    : "";
 
   const handleTemplateSelect = (e) => {
     const selected = templates.find(t => t.name === e.target.value);
@@ -144,8 +161,8 @@ export default function NewCampaignPage() {
         </div>
       </div>
 
-      <div className="page-content" style={{ maxWidth: "720px" }}>
-        <div className="ui-card">
+      <div className="page-content" style={{ display: "flex", gap: "28px", alignItems: "flex-start", maxWidth: "1280px" }}>
+        <div className="ui-card" style={{ flex: 1, minWidth: 0, padding: "28px" }}>
           <form onSubmit={handleSubmit}>
             {}
             {error && (
@@ -386,6 +403,90 @@ export default function NewCampaignPage() {
               </Link>
             </div>
           </form>
+        </div>
+
+        {/* Right side: Live WhatsApp Preview */}
+        <div style={{ width: "380px", flexShrink: 0, position: "sticky", top: "24px" }}>
+          <div style={{ background: "#e5ddd5", borderRadius: "16px", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.1)", border: "1px solid #d1d5db" }}>
+            {/* Header */}
+            <div style={{ background: "#075e54", padding: "14px 16px", color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <ImageIcon size={18} color="#075e54" />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: "600", fontSize: "14px" }}>WhatsApp Preview</div>
+                <div style={{ fontSize: "11px", opacity: 0.85, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {selectedTemplate ? selectedTemplate.name : "Select a template"}
+                </div>
+              </div>
+              <span style={{ fontSize: "10px", padding: "3px 7px", background: "rgba(255,255,255,0.2)", borderRadius: "4px", fontWeight: "600" }}>
+                Preview
+              </span>
+            </div>
+
+            {/* Chat Wallpaper Area */}
+            <div style={{ padding: "18px 14px", backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: "cover", minHeight: "360px" }}>
+              {selectedTemplate ? (
+                <div style={{ background: "white", borderRadius: "10px", padding: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.12)", maxWidth: "96%", borderTopLeftRadius: "2px" }}>
+                  {/* Header Image / Media */}
+                  {requiresMediaHeader && (
+                    <div style={{ width: "100%", background: "#f1f5f9", borderRadius: "6px", marginBottom: "8px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {previewMediaUrl ? (
+                        <img
+                          src={previewMediaUrl}
+                          alt="Header Preview"
+                          style={{ width: "100%", height: "auto", maxHeight: "320px", objectFit: "contain", display: "block", borderRadius: "6px" }}
+                        />
+                      ) : (
+                        <div style={{ padding: "28px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", color: "#64748b" }}>
+                          <ImageIcon size={28} />
+                          <span style={{ fontSize: "11px" }}>Attach or select {requiredMediaFormat.toLowerCase()}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Template Body */}
+                  {bodyComponent && (
+                    <div style={{ fontSize: "13.5px", color: "#111", whiteSpace: "pre-wrap", lineHeight: "1.45" }}>
+                      {previewBodyText}
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  {footerComponent && (
+                    <div style={{ fontSize: "11px", color: "#667781", marginTop: "6px" }}>
+                      {footerComponent.text}
+                    </div>
+                  )}
+
+                  {/* Message Time & Double Checkmark */}
+                  <div style={{ fontSize: "11px", color: "#667781", textAlign: "right", marginTop: "4px", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "3px" }}>
+                    <span>12:00 PM</span>
+                    <span style={{ color: "#53bdeb" }}>✓✓</span>
+                  </div>
+
+                  {/* Buttons */}
+                  {buttonsComponent?.buttons && buttonsComponent.buttons.length > 0 && (
+                    <div style={{ borderTop: "1px solid #f0f2f5", marginTop: "8px", paddingTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {buttonsComponent.buttons.map((btn, idx) => (
+                        <div key={idx} style={{ padding: "8px 10px", textAlign: "center", color: "#00a884", fontSize: "13px", fontWeight: "500", background: "#f8fafc", borderRadius: "6px" }}>
+                          {btn.type === "URL" ? "🔗 " : btn.type === "PHONE_NUMBER" ? "📞 " : "↩️ "}
+                          {btn.text}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "300px", color: "#64748b", textAlign: "center", background: "rgba(255,255,255,0.75)", borderRadius: "12px", padding: "20px" }}>
+                  <ImageIcon size={36} style={{ opacity: 0.4, marginBottom: "8px" }} />
+                  <span style={{ fontSize: "13px", fontWeight: "600" }}>No Template Selected</span>
+                  <span style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>Choose a template on the left to see live WhatsApp preview</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
