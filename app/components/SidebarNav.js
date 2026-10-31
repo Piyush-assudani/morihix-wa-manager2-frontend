@@ -30,7 +30,7 @@ export default function SidebarNav() {
   const navItems = [
     { href: "/chat", icon: MessageCircle, label: "Live Chat" },
     { href: "/dashboard", icon: LayoutDashboard, label: "Analytics" },
-    { href: "/replies", icon: Reply, label: "All Replies" },
+    // { href: "/replies", icon: Reply, label: "All Replies" }, // Hidden per request (code preserved)
     { href: "/contacts", icon: Users, label: "Contact Lists" },
     { href: "/campaigns", icon: Megaphone, label: "Campaigns" },
     { href: "/media", icon: ImageIcon, label: "Media Library" },
