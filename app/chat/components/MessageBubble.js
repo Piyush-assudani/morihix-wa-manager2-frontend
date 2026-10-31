@@ -138,8 +138,8 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
               src={headerMediaSrc} 
               alt="Template Header" 
               onClick={() => onImageClick?.({ url: headerMediaSrc, type: 'image' })}
-              className="w-full rounded-md object-cover cursor-pointer hover:opacity-95 transition-opacity" 
-              style={{ maxHeight: "220px", width: "100%", objectFit: "cover" }} 
+              className="w-full rounded-md object-contain cursor-pointer hover:opacity-95 transition-opacity" 
+              style={{ maxHeight: "320px", width: "100%", height: "auto", objectFit: "contain" }} 
               title="Click to view full image"
             />
           ) : (

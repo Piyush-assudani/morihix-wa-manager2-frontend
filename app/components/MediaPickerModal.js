@@ -373,3 +373,4 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect, mediaType 
     </div>
   );
 }
+

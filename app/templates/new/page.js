@@ -426,11 +426,18 @@ export default function NewTemplatePage() {
               <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', maxWidth: '90%', borderTopLeftRadius: '0' }}>
                 
                 {headerType === 'IMAGE' && (
-                  <div style={{ width: '100%', height: '140px', background: '#cbd5e1', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', background: '#f1f5f9', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', overflow: 'hidden', minHeight: samplePreview ? 'auto' : '140px' }}>
                     {samplePreview ? (
-                      <img src={samplePreview} alt="Header Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={samplePreview}
+                        alt="Header Preview"
+                        style={{ width: '100%', height: 'auto', maxHeight: '340px', objectFit: 'contain', display: 'block', borderRadius: '6px' }}
+                      />
                     ) : (
-                      <ImageIcon size={32} />
+                      <div style={{ padding: '36px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                        <ImageIcon size={32} />
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>Image Header</span>
+                      </div>
                     )}
                   </div>
                 )}
