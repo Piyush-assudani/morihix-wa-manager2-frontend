@@ -145,18 +145,30 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" style={{ paddingBottom: "40px" }}>
       <div className="page-header" style={{ marginBottom: "20px" }}>
         <div>
-          <h1 className="page-title">Settings & Configuration</h1>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "4px 0 0" }}>
+          <h1 className="page-title">Settings &amp; Configuration</h1>
+          <p style={{ fontSize: "13.5px", color: "var(--text-muted)", margin: "4px 0 0" }}>
             Manage your Meta WhatsApp Cloud API status, admin credentials, and webhook endpoints
           </p>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div style={{ display: "flex", gap: "8px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px", marginBottom: "24px", overflowX: "auto" }}>
+      {/* Modern Segmented Navigation Tabs */}
+      <div
+        style={{
+          display: "inline-flex",
+          background: "#f1f5f9",
+          padding: "5px",
+          borderRadius: "14px",
+          border: "1px solid #e2e8f0",
+          gap: "6px",
+          marginBottom: "24px",
+          maxWidth: "100%",
+          overflowX: "auto",
+        }}
+      >
         {[
           { id: "account", label: "Meta Cloud Account", icon: Smartphone },
           { id: "credentials", label: "Admin Credentials", icon: UserCog },
@@ -173,31 +185,32 @@ export default function SettingsPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                padding: "8px 16px",
+                padding: "9px 18px",
                 borderRadius: "10px",
                 fontSize: "13.5px",
                 fontWeight: isActive ? "600" : "500",
-                background: isActive ? "var(--accent)" : "transparent",
-                color: isActive ? "#fff" : "var(--text-secondary)",
-                border: "none",
+                background: isActive ? "#ffffff" : "transparent",
+                color: isActive ? "var(--accent)" : "#64748b",
+                border: isActive ? "1px solid rgba(0, 0, 0, 0.08)" : "1px solid transparent",
+                boxShadow: isActive ? "0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)" : "none",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
                 whiteSpace: "nowrap",
               }}
             >
-              <Icon size={16} />
+              <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />
               <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      <div className="page-content" style={{ maxWidth: "860px" }}>
+      <div className="page-content" style={{ maxWidth: "960px" }}>
         {/* ========================================================= */}
         {/* TAB 1: META CLOUD ACCOUNT HEALTH */}
         {/* ========================================================= */}
         {activeTab === "account" && (
-          <section className="ui-card animate-fade-in">
+          <section className="ui-card animate-fade-in" style={{ transform: "none" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
@@ -303,9 +316,9 @@ export default function SettingsPage() {
         {/* TAB 2: ADMIN CREDENTIALS */}
         {/* ========================================================= */}
         {activeTab === "credentials" && (
-          <section className="ui-card animate-fade-in">
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
+          <section className="ui-card animate-fade-in" style={{ transform: "none" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "22px" }}>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(15, 59, 168, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
                 <UserCog size={22} />
               </div>
               <div>
@@ -313,7 +326,7 @@ export default function SettingsPage() {
                   Admin Security &amp; Login
                 </h2>
                 <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                  Change your admin username and password
+                  Update your administrator login credentials
                 </p>
               </div>
             </div>
@@ -332,101 +345,153 @@ export default function SettingsPage() {
             )}
 
             <form onSubmit={handleUpdateProfile}>
-              <div style={{ padding: "16px", background: "var(--bg-tertiary)", borderRadius: "12px", marginBottom: "18px" }}>
-                <h3 style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "14px" }}>
-                  Current Verification
-                </h3>
+              {/* 2-Column Side-by-Side Credentials Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: "18px", marginBottom: "22px" }}>
+                {/* Section 1: Current Verification */}
+                <div
+                  style={{
+                    background: "var(--bg-tertiary)",
+                    borderRadius: "14px",
+                    padding: "18px 20px",
+                    border: "1px solid var(--border-color)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "14px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingBottom: "8px", borderBottom: "1px solid var(--border-color)" }}>
+                    <div style={{ width: "24px", height: "24px", borderRadius: "6px", background: "rgba(15, 59, 168, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
+                      <ShieldCheck size={14} />
+                    </div>
+                    <h3 style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
+                      Current Verification
+                    </h3>
+                  </div>
 
-                <div className="form-group" style={{ marginBottom: "14px" }}>
-                  <label className="form-label">Current Username / ID</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={currentUsername}
-                    onChange={(e) => setCurrentUsername(e.target.value)}
-                    placeholder="Enter current username (e.g. admin)"
-                    required
-                  />
+                  <div>
+                    <label className="form-label" style={{ fontSize: "12.5px", marginBottom: "6px" }}>Current Username / ID</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={currentUsername}
+                      onChange={(e) => setCurrentUsername(e.target.value)}
+                      placeholder="Enter current username"
+                      required
+                      style={{ padding: "10px 14px", fontSize: "14px", background: "#ffffff" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label" style={{ fontSize: "12.5px", marginBottom: "6px" }}>Current Password</label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type={showCurrentPassword ? "text" : "password"}
+                        className="form-input"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        required
+                        style={{ padding: "10px 14px", paddingRight: "40px", fontSize: "14px", background: "#ffffff" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "flex" }}
+                      >
+                        {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="form-group" style={{ position: "relative", margin: 0 }}>
-                  <label className="form-label">Current Password</label>
-                  <div style={{ position: "relative" }}>
+                {/* Section 2: New Credentials */}
+                <div
+                  style={{
+                    background: "var(--bg-tertiary)",
+                    borderRadius: "14px",
+                    padding: "18px 20px",
+                    border: "1px solid var(--border-color)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "14px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingBottom: "8px", borderBottom: "1px solid var(--border-color)" }}>
+                    <div style={{ width: "24px", height: "24px", borderRadius: "6px", background: "rgba(16, 185, 129, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "#059669" }}>
+                      <UserCog size={14} />
+                    </div>
+                    <h3 style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
+                      New Credentials
+                    </h3>
+                  </div>
+
+                  <div>
+                    <label className="form-label" style={{ fontSize: "12.5px", marginBottom: "6px" }}>New Username / ID</label>
                     <input
-                      type={showCurrentPassword ? "text" : "password"}
+                      type="text"
                       className="form-input"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Enter current password"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      placeholder="Enter new username"
                       required
-                      style={{ paddingRight: "44px" }}
+                      style={{ padding: "10px 14px", fontSize: "14px", background: "#ffffff" }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
-                    >
-                      {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+                  </div>
+
+                  <div>
+                    <label className="form-label" style={{ fontSize: "12.5px", marginBottom: "6px" }}>New Password</label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        className="form-input"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Min. 6 characters"
+                        required
+                        style={{ padding: "10px 14px", paddingRight: "40px", fontSize: "14px", background: "#ffffff" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "flex" }}
+                      >
+                        {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ padding: "16px", background: "var(--bg-tertiary)", borderRadius: "12px", marginBottom: "24px" }}>
-                <h3 style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "14px" }}>
-                  New Credentials
-                </h3>
-
-                <div className="form-group" style={{ marginBottom: "14px" }}>
-                  <label className="form-label">New Username / ID</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="Enter new username"
-                    required
-                  />
-                </div>
-
-                <div className="form-group" style={{ position: "relative", margin: 0 }}>
-                  <label className="form-label">New Password</label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type={showNewPassword ? "text" : "password"}
-                      className="form-input"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password (min. 6 characters)"
-                      required
-                      style={{ paddingRight: "44px" }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
-                    >
-                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
+              {/* Action Buttons Bar */}
+              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", paddingTop: "6px", borderTop: "1px solid var(--border-color)" }}>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{
+                    padding: "11px 24px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontSize: "13.5px",
+                    fontWeight: "600",
+                    borderRadius: "10px",
+                    cursor: loading ? "not-allowed" : "pointer",
+                  }}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw size={15} className="animate-spin" />
+                      <span>Saving changes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      <span>Save &amp; Update Credentials</span>
+                    </>
+                  )}
+                </button>
               </div>
-
-              <button
-                type="submit"
-                className="btn-primary"
-                style={{ width: "100%", padding: "12px", display: "flex", justifyContent: "center", gap: "8px", fontSize: "14px", fontWeight: "600" }}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span>Saving changes...</span>
-                ) : (
-                  <>
-                    <Save size={18} />
-                    <span>Save &amp; Update Credentials</span>
-                  </>
-                )}
-              </button>
             </form>
           </section>
         )}
@@ -435,7 +500,7 @@ export default function SettingsPage() {
         {/* TAB 3: WEBHOOK & API ENDPOINTS */}
         {/* ========================================================= */}
         {activeTab === "webhook" && (
-          <section className="ui-card animate-fade-in">
+          <section className="ui-card animate-fade-in" style={{ transform: "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
               <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
                 <Webhook size={22} />
@@ -541,7 +606,7 @@ export default function SettingsPage() {
         {/* TAB 4: SYSTEM & PLATFORM INFO */}
         {/* ========================================================= */}
         {activeTab === "system" && (
-          <section className="ui-card animate-fade-in">
+          <section className="ui-card animate-fade-in" style={{ transform: "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
               <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
                 <Server size={22} />
