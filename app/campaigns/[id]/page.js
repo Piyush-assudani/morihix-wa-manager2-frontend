@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, CheckCircle2, XCircle, Clock, Filter, Activity, MessageSquare } from "lucide-react";
-import api from "../../lib/api";
+import { ArrowLeft, Users, CheckCircle2, XCircle, Clock, Filter, Activity, MessageSquare, Image as ImageIcon } from "lucide-react";
+import api, { normalizeMediaUrl } from "../../lib/api";
 import { format } from "date-fns";
 
 export default function CampaignDetailPage() {
@@ -64,6 +64,13 @@ export default function CampaignDetailPage() {
   const header = template?.components?.find(c => c.type === "HEADER");
   const body = template?.components?.find(c => c.type === "BODY");
   const footer = template?.components?.find(c => c.type === "FOOTER");
+  const buttonsComp = template?.components?.find(c => c.type === "BUTTONS");
+
+  const campaignMediaUrl = campaign?.media_url
+    ? normalizeMediaUrl(campaign.media_url)
+    : header?.example?.header_handle?.[0]?.startsWith("http")
+    ? header.example.header_handle[0]
+    : null;
 
   const getFallbackErrorMessage = () => {
     if (campaign?.media_id && template && (!header || !["IMAGE", "VIDEO", "DOCUMENT"].includes(header.format))) {
@@ -257,18 +264,37 @@ export default function CampaignDetailPage() {
                     {template ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                         {header && header.format === "IMAGE" && (
-                          <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100px" }}>
-                            <span style={{ fontSize: "24px", color: "#aaa" }}>📷</span>
-                          </div>
+                          campaignMediaUrl ? (
+                            <div style={{ width: "100%", background: "#f1f5f9", borderRadius: "8px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <img
+                                src={campaignMediaUrl}
+                                alt="Campaign Header"
+                                style={{ width: "100%", height: "auto", maxHeight: "320px", objectFit: "contain", display: "block", borderRadius: "8px" }}
+                              />
+                            </div>
+                          ) : (
+                            <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100px" }}>
+                              <span style={{ fontSize: "24px", color: "#aaa" }}>📷</span>
+                            </div>
+                          )
                         )}
                         {header && header.format === "VIDEO" && (
-                          <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100px" }}>
-                            <span style={{ fontSize: "24px", color: "#aaa" }}>🎥</span>
-                          </div>
+                          campaignMediaUrl ? (
+                            <video
+                              src={campaignMediaUrl}
+                              controls
+                              style={{ width: "100%", maxHeight: "240px", borderRadius: "8px" }}
+                            />
+                          ) : (
+                            <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100px" }}>
+                              <span style={{ fontSize: "24px", color: "#aaa" }}>🎥</span>
+                            </div>
+                          )
                         )}
                         {header && header.format === "DOCUMENT" && (
-                          <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60px" }}>
-                            <span style={{ fontSize: "24px", color: "#aaa" }}>📄</span>
+                          <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontSize: "24px" }}>📄</span>
+                            <span style={{ fontSize: "13px", color: "var(--text-primary)" }}>{campaignMediaUrl ? campaignMediaUrl.split("/").pop() : "Document"}</span>
                           </div>
                         )}
                         {header && header.format === "TEXT" && (
@@ -284,6 +310,17 @@ export default function CampaignDetailPage() {
                         {footer && (
                           <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
                             {footer.text}
+                          </div>
+                        )}
+
+                        {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
+                          <div style={{ borderTop: "1px solid #f0f2f5", marginTop: "6px", paddingTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                            {buttonsComp.buttons.map((btn, idx) => (
+                              <div key={idx} style={{ padding: "8px 10px", textAlign: "center", color: "#00a884", fontSize: "13px", fontWeight: "500", background: "#f8fafc", borderRadius: "6px" }}>
+                                {btn.type === "URL" ? "🔗 " : btn.type === "PHONE_NUMBER" ? "📞 " : "↩️ "}
+                                {btn.text}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
