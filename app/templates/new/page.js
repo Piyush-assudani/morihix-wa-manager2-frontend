@@ -14,8 +14,21 @@ export default function NewTemplatePage() {
   const [category, setCategory] = useState("MARKETING");
   const [language, setLanguage] = useState("en_US");
   const [headerType, setHeaderType] = useState("NONE");
+  const [sampleFile, setSampleFile] = useState(null);
+  const [samplePreview, setSamplePreview] = useState(null);
   const [bodyText, setBodyText] = useState("");
   const [buttons, setButtons] = useState([]);
+
+  const handleSampleFileChange = (e) => {
+    const file = e.target.files[0] || null;
+    setSampleFile(file);
+    if (file && file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      setSamplePreview(url);
+    } else {
+      setSamplePreview(null);
+    }
+  };
   
   const handleAddButton = (type) => {
     if (buttons.length >= 3) return;
@@ -55,13 +68,21 @@ export default function NewTemplatePage() {
     setError(null);
 
     try {
-      await api.post("/api/templates", {
-        name: name.trim(),
-        language,
-        category,
-        text: bodyText.trim(),
-        headerType,
-        buttons: buttons.length > 0 ? buttons : undefined
+      const formData = new FormData();
+      formData.append("name", name.trim());
+      formData.append("language", language);
+      formData.append("category", category);
+      formData.append("text", bodyText.trim());
+      formData.append("headerType", headerType);
+      if (buttons && buttons.length > 0) {
+        formData.append("buttons", JSON.stringify(buttons));
+      }
+      if (sampleFile) {
+        formData.append("sampleFile", sampleFile);
+      }
+
+      await api.post("/api/templates", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       const successMsg = `Template "${name.trim()}" submitted to Meta successfully! Approval usually takes 1-2 minutes.`;
@@ -166,7 +187,13 @@ export default function NewTemplatePage() {
                 <select
                   className="form-select"
                   value={headerType}
-                  onChange={(e) => setHeaderType(e.target.value)}
+                  onChange={(e) => {
+                    setHeaderType(e.target.value);
+                    if (e.target.value === "NONE") {
+                      setSampleFile(null);
+                      setSamplePreview(null);
+                    }
+                  }}
                 >
                   <option value="NONE">None (Text Only)</option>
                   <option value="IMAGE">Image</option>
@@ -177,8 +204,27 @@ export default function NewTemplatePage() {
             </div>
 
             {headerType !== "NONE" && (
-              <div style={{ background: "#fef3c7", border: "1px solid #fde68a", color: "#92400e", padding: "12px 16px", borderRadius: "8px", fontSize: "13px", lineHeight: "1.5", marginBottom: "20px" }}>
-                ⚠️ <strong>Media Header Notice:</strong> Meta requires sample file verification for Image/Video/PDF templates. To create an Image header template, create it directly in <a href="https://business.facebook.com/wa/manage/message-templates" target="_blank" rel="noopener noreferrer" style={{ color: "#b45309", textDecoration: "underline", fontWeight: 600 }}>Meta WhatsApp Business Manager</a> (it will automatically appear here once approved). Or select <strong>None (Text Only)</strong> below.
+              <div style={{ background: "var(--bg-tertiary)", padding: "16px", borderRadius: "10px", border: "1px dashed var(--border-color)", marginBottom: "20px" }}>
+                <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                  <ImageIcon size={16} color="var(--accent)" />
+                  Sample {headerType === "IMAGE" ? "Image" : headerType === "VIDEO" ? "Video" : "Document"} (Optional)
+                </label>
+                <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "10px" }}>
+                  Attach a sample {headerType.toLowerCase()} for Meta reviewers to see your header, or leave empty to auto-generate sample.
+                </p>
+                <input
+                  type="file"
+                  className="form-input"
+                  style={{ padding: "8px", background: "var(--bg-primary)" }}
+                  accept={
+                    headerType === "IMAGE"
+                      ? "image/*"
+                      : headerType === "VIDEO"
+                      ? "video/*"
+                      : "application/pdf"
+                  }
+                  onChange={handleSampleFileChange}
+                />
               </div>
             )}
 
@@ -283,7 +329,15 @@ export default function NewTemplatePage() {
               
               <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', maxWidth: '90%', borderTopLeftRadius: '0' }}>
                 
-                {headerType === 'IMAGE' && <div style={{ width: '100%', height: '140px', background: '#cbd5e1', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}><ImageIcon size={32} /></div>}
+                {headerType === 'IMAGE' && (
+                  <div style={{ width: '100%', height: '140px', background: '#cbd5e1', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', overflow: 'hidden' }}>
+                    {samplePreview ? (
+                      <img src={samplePreview} alt="Header Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <ImageIcon size={32} />
+                    )}
+                  </div>
+                )}
                 {headerType === 'VIDEO' && <div style={{ width: '100%', height: '140px', background: '#cbd5e1', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}><Video size={32} /></div>}
                 {headerType === 'DOCUMENT' && <div style={{ width: '100%', padding: '16px', background: '#e2e8f0', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}><FileText color="#64748b" size={24} /><span style={{ fontSize: '14px', color: '#475569', fontWeight: '500' }}>Document.pdf</span></div>}
                 
