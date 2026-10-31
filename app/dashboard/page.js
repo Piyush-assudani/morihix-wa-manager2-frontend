@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Megaphone, Send, Mail, Briefcase, FileText, CheckCircle, BarChart2 } from "lucide-react";
+import { Users, Megaphone, Send, Mail, Briefcase, FileText, CheckCircle, BarChart2, ArrowRight } from "lucide-react";
+import { format } from "date-fns";
 import api from "../lib/api";
 import Link from "next/link";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [inboundReplies, setInboundReplies] = useState([]);
+  const [inboundLoading, setInboundLoading] = useState(true);
   
   // Set default to current month
   const today = new Date();
@@ -30,6 +33,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboard();
+    setInboundLoading(true);
+    api.get("/api/messages/inbound")
+      .then((res) => {
+        setInboundReplies(Array.isArray(res.data) ? res.data.slice(0, 5) : []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch inbound replies for dashboard:", err);
+      })
+      .finally(() => {
+        setInboundLoading(false);
+      });
   }, [startDate, endDate]);
 
   if (loading) {
@@ -235,17 +249,95 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#333' }}>Recent Follow-ups Needed</h3>
-            <Link href="/replies" style={{ fontSize: '12px', color: '#3b82f6', fontWeight: '500', textDecoration: 'none' }}>View All</Link>
+        <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b', margin: 0 }}>Recent Follow-ups Needed</h3>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#0f3ba8', background: 'rgba(15, 59, 168, 0.08)', padding: '2px 8px', borderRadius: '10px' }}>
+                Latest 5
+              </span>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#94a3b8', fontSize: '13px', textAlign: 'center' }}>
-            <span style={{ fontSize: '32px', marginBottom: '12px' }}>📩</span>
-            {totalMessagesReceived > 0 
-              ? `You have received ${totalMessagesReceived} messages from users. Click 'View All' to check them.` 
-              : "No inbound messages received yet"}
-          </div>
+
+          {inboundLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#94a3b8', fontSize: '13px' }}>
+              Loading inbound messages...
+            </div>
+          ) : inboundReplies.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#94a3b8', fontSize: '13px', textAlign: 'center' }}>
+              <span style={{ fontSize: '32px', marginBottom: '8px' }}>✨</span>
+              <span style={{ fontWeight: '600', color: '#475569', fontSize: '14px', marginBottom: '2px' }}>All caught up!</span>
+              <span>No pending inbound replies right now</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {inboundReplies.map((msg) => {
+                const contactName = msg.name || `+${msg.phone_number}`;
+                let timeStr = "";
+                try {
+                  timeStr = msg.timestamp ? format(new Date(msg.timestamp), "MMM d, h:mm a") : "";
+                } catch (e) {
+                  timeStr = "";
+                }
+
+                return (
+                  <Link
+                    key={msg.id}
+                    href={`/chat?contact=${msg.contact_id}`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      background: '#f8fafc',
+                      textDecoration: 'none',
+                      transition: 'all 0.15s ease',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+                          color: '#3730a3',
+                          fontWeight: '700',
+                          fontSize: '13px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          border: '1px solid #c7d2fe',
+                        }}
+                      >
+                        {contactName.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '13.5px', fontWeight: '600', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {contactName}
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#94a3b8', flexShrink: 0, fontWeight: '500' }}>
+                            {timeStr}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                          {msg.message_body || (msg.type === "image" ? "📷 [Image]" : "Attachment received")}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ color: '#94a3b8', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                      <ArrowRight size={14} />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -105,6 +105,21 @@ export default function ChatPage() {
     fetchContacts();
   }, [fetchContacts]);
 
+  // Auto-select contact from URL parameter (e.g. /chat?contact=123)
+  useEffect(() => {
+    if (typeof window === "undefined" || !contacts.length) return;
+    const params = new URLSearchParams(window.location.search);
+    const targetContactId = params.get("contact") || params.get("contactId");
+    if (targetContactId) {
+      const found = contacts.find(
+        (c) => String(c.id) === String(targetContactId) || c.phone_number === targetContactId
+      );
+      if (found && String(selectedContact?.id) !== String(found.id)) {
+        handleSelectContact(found);
+      }
+    }
+  }, [contacts, selectedContact, handleSelectContact]);
+
   // Socket.io real-time updates
   useEffect(() => {
     const socket = getSocket();
