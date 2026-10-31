@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, AlertTriangle, LayoutTemplate, Paperclip, Image as ImageIcon } from "lucide-react";
-import { sendMessage, sendTemplate, getTemplates, sendMedia } from "../../lib/api";
+import { Send, AlertTriangle, LayoutTemplate, Paperclip, Image as ImageIcon, FolderOpen, Upload, X } from "lucide-react";
+import { sendMessage, sendTemplate, getTemplates, sendMedia, uploadMedia, normalizeMediaUrl } from "../../lib/api";
 import { useToast } from "../../components/ToastProvider";
+import MediaPickerModal from "../../components/MediaPickerModal";
 
 export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const { showError, showWarning, showSuccess } = useToast();
@@ -21,6 +22,8 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
   const [templateSending, setTemplateSending] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const [uploadingHeaderMedia, setUploadingHeaderMedia] = useState(false);
 
   const isWindowClosed = windowInfo && !windowInfo.open;
 
@@ -135,16 +138,50 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
     }
   };
 
+  const handleUploadHeaderMedia = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingHeaderMedia(true);
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await uploadMedia(formData);
+      const publicUrl = normalizeMediaUrl(res.data.media_url);
+      setTemplateParams((prev) => ({
+        ...prev,
+        header_media: publicUrl,
+        header_media_name: file.name,
+      }));
+      showSuccess(`"${file.name}" uploaded to gallery!`);
+    } catch (err) {
+      console.error("Header upload failed:", err);
+      showError(err.response?.data?.error || "Failed to upload file");
+    } finally {
+      setUploadingHeaderMedia(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleSelectGalleryMedia = (asset) => {
+    const publicUrl = normalizeMediaUrl(asset.media_url);
+    setTemplateParams((prev) => ({
+      ...prev,
+      header_media: publicUrl,
+      header_media_name: asset.original_name,
+    }));
+  };
+
   const handleSendTemplate = async () => {
     if (!templateName.trim() || templateSending) return;
 
     const apiComponents = [];
 
     if (selectedTemplate) {
-      const headerComp = selectedTemplate.components?.find(c => c.type === "HEADER");
+      const headerComp = selectedTemplate.components?.find((c) => c.type === "HEADER");
       if (headerComp && ["IMAGE", "VIDEO", "DOCUMENT"].includes(headerComp.format)) {
         if (!templateParams.header_media) {
-          showError(`Please provide a ${headerComp.format} URL`);
+          showError(`Please select a ${headerComp.format.toLowerCase()} for the template header`);
           return;
         }
         apiComponents.push({
@@ -152,9 +189,9 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
           parameters: [
             {
               type: headerComp.format.toLowerCase(),
-              [headerComp.format.toLowerCase()]: { link: templateParams.header_media }
-            }
-          ]
+              [headerComp.format.toLowerCase()]: { link: templateParams.header_media },
+            },
+          ],
         });
       }
 
@@ -318,15 +355,105 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
               <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
                 {selectedTemplate.components.map(comp => {
                   if (comp.type === "HEADER" && ["IMAGE", "VIDEO", "DOCUMENT"].includes(comp.format)) {
+                    const mediaLabel = comp.format === "IMAGE" ? "Image" : comp.format === "VIDEO" ? "Video" : "Document";
+                    const hasMedia = !!templateParams["header_media"];
+
                     return (
-                      <div key="header">
-                        <label className="form-label">{comp.format} URL (Required)</label>
-                        <input 
-                          className="form-input" 
-                          placeholder={`Enter ${comp.format.toLowerCase()} URL...`}
-                          value={templateParams["header_media"] || ""}
-                          onChange={(e) => setTemplateParams({...templateParams, header_media: e.target.value})}
-                        />
+                      <div key="header" style={{ background: "var(--bg-tertiary)", padding: "14px", borderRadius: "10px", border: "1px dashed var(--border-color)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <label className="form-label" style={{ margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                            <ImageIcon size={16} color="var(--accent)" />
+                            {mediaLabel} Header (Required)
+                          </label>
+                          <span style={{ fontSize: "11px", fontWeight: "600", padding: "2px 8px", background: "var(--accent-glow)", color: "var(--accent)", borderRadius: "6px" }}>
+                            Required
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "12px" }}>
+                          Choose an image from your software&apos;s Media Gallery or upload from your device.
+                        </p>
+
+                        {hasMedia ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-primary)", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                            {comp.format === "IMAGE" ? (
+                              <img
+                                src={templateParams["header_media"]}
+                                alt="Header"
+                                style={{ width: "48px", height: "48px", borderRadius: "6px", objectFit: "cover" }}
+                              />
+                            ) : (
+                              <div style={{ width: "48px", height: "48px", borderRadius: "6px", background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
+                                <ImageIcon size={22} />
+                              </div>
+                            )}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {templateParams["header_media_name"] || "Selected Media"}
+                              </div>
+                              <span style={{ fontSize: "11px", color: "var(--secondary-accent)", fontWeight: "500" }}>
+                                ✓ Ready to send
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ fontSize: "12px", padding: "4px 10px" }}
+                                onClick={() => setIsMediaPickerOpen(true)}
+                              >
+                                Change
+                              </button>
+                              <button
+                                type="button"
+                                style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "4px" }}
+                                onClick={() => {
+                                  setTemplateParams((prev) => {
+                                    const next = { ...prev };
+                                    delete next.header_media;
+                                    delete next.header_media_name;
+                                    return next;
+                                  });
+                                }}
+                                title="Remove"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                            <button
+                              type="button"
+                              className="btn-primary"
+                              style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", padding: "8px 14px" }}
+                              onClick={() => setIsMediaPickerOpen(true)}
+                            >
+                              <FolderOpen size={15} />
+                              <span>Choose from Media Gallery</span>
+                            </button>
+
+                            <label
+                              className="btn-secondary"
+                              style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", padding: "8px 14px", cursor: uploadingHeaderMedia ? "not-allowed" : "pointer" }}
+                            >
+                              <Upload size={15} />
+                              <span>{uploadingHeaderMedia ? "Uploading..." : "Upload from Device"}</span>
+                              <input
+                                type="file"
+                                style={{ display: "none" }}
+                                accept={
+                                  comp.format === "IMAGE"
+                                    ? "image/*"
+                                    : comp.format === "VIDEO"
+                                    ? "video/*"
+                                    : "application/pdf"
+                                }
+                                onChange={handleUploadHeaderMedia}
+                                disabled={uploadingHeaderMedia}
+                              />
+                            </label>
+                          </div>
+                        )}
                       </div>
                     );
                   }
@@ -478,6 +605,14 @@ export default function ChatInput({ contactId, windowInfo, onMessageSent }) {
           </div>
         </div>
       )}
+
+      <MediaPickerModal
+        isOpen={isMediaPickerOpen}
+        onClose={() => setIsMediaPickerOpen(false)}
+        onSelect={handleSelectGalleryMedia}
+        mediaType={selectedTemplate?.components?.find((c) => c.type === "HEADER")?.format?.toLowerCase() || "image"}
+        title="Select Header Media from Gallery"
+      />
     </div>
   );
 }
