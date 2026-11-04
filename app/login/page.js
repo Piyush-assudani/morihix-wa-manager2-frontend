@@ -40,7 +40,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "https://morihix-wa-manager.piyushassudani.in").replace(/\/+$/, "");
 
     try {
       const res = await fetch(`${apiUrl}/api/auth/login`, {

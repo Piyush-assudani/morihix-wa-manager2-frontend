@@ -20,7 +20,7 @@ This is the web-based user interface for Morihix WA Manager, built with Next.js 
 2. **API Configuration:**
    Ensure that the backend API URL is configured via environment variables (`NEXT_PUBLIC_API_URL`):
    ```bash
-   NEXT_PUBLIC_API_URL=http://localhost:5001
+   NEXT_PUBLIC_API_URL=https://morihix-wa-manager.piyushassudani.in
    ```
 
 3. **Run the development server:**

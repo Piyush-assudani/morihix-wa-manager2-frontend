@@ -71,15 +71,16 @@ export default function SettingsPage() {
   const [success, setSuccess] = useState("");
 
   const [copiedKey, setCopiedKey] = useState(null);
-  const [resolvedApiUrl, setResolvedApiUrl] = useState(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001");
+  const DEFAULT_API_URL = "https://morihix-wa-manager.piyushassudani.in";
+  const [resolvedApiUrl, setResolvedApiUrl] = useState(process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setResolvedApiUrl(process.env.NEXT_PUBLIC_API_URL || window.location.origin);
+      setResolvedApiUrl(process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL);
     }
   }, []);
 
-  const cleanApiUrl = (resolvedApiUrl || "http://localhost:5001").replace(/\/+$/, "");
+  const cleanApiUrl = (resolvedApiUrl || DEFAULT_API_URL).replace(/\/+$/, "");
   const webhookUrl = `${cleanApiUrl}/webhook`;
   const privacyUrl = `${cleanApiUrl}/privacy`;
 
