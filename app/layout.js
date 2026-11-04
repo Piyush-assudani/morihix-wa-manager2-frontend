@@ -5,8 +5,8 @@ import AppFooter from "./components/AppFooter";
 import { ToastProvider } from "./components/ToastProvider";
 
 export const metadata = {
-  title: "Morihix Digital | Enterprise WhatsApp Marketing & CRM",
-  description: "Enterprise WhatsApp marketing, broadcast campaigns, real-time live chat, and customer CRM powered by Morihix Digital.",
+  title: "Morihix WA Manager | Enterprise WhatsApp Marketing & CRM",
+  description: "Enterprise WhatsApp marketing, broadcast campaigns, real-time live chat, and customer CRM powered by Morihix WA Manager.",
   icons: {
     icon: "/icon.png",
     shortcut: "/favicon.ico",

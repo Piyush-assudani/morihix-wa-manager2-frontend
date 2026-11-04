@@ -40,7 +40,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://morihix-wp.piyushassudani.in";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
     try {
       const res = await fetch(`${apiUrl}/api/auth/login`, {
@@ -134,7 +134,7 @@ export default function LoginPage() {
             >
               <img
                 src="/icon.png"
-                alt="Morihix Digital Logo"
+                alt="Morihix WA Manager Logo"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -153,7 +153,7 @@ export default function LoginPage() {
                 color: "#0f172a",
               }}
             >
-              Morihix <span style={{ color: "#d97706" }}>Digital</span>
+              Morihix <span style={{ color: "#d97706" }}>WA Manager</span>
             </h1>
             <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
               WhatsApp Automation & CRM Console
@@ -482,7 +482,7 @@ export default function LoginPage() {
           gap: "12px",
         }}
       >
-        <span>&copy; 2026 Morihix Digital. All rights reserved.</span>
+        <span>&copy; 2026 Morihix WA Manager. All rights reserved.</span>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <a
             href="https://morihix.com"
@@ -490,7 +490,7 @@ export default function LoginPage() {
             rel="noopener noreferrer"
             style={{ color: "#0f3ba8", textDecoration: "none", fontWeight: "600" }}
           >
-            Powered by Morihix Digital
+            Powered by Morihix WA Manager
           </a>
           <span>&bull;</span>
           <Link

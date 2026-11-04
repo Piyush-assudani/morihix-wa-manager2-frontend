@@ -71,6 +71,17 @@ export default function SettingsPage() {
   const [success, setSuccess] = useState("");
 
   const [copiedKey, setCopiedKey] = useState(null);
+  const [resolvedApiUrl, setResolvedApiUrl] = useState(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setResolvedApiUrl(process.env.NEXT_PUBLIC_API_URL || window.location.origin);
+    }
+  }, []);
+
+  const cleanApiUrl = (resolvedApiUrl || "http://localhost:5001").replace(/\/+$/, "");
+  const webhookUrl = `${cleanApiUrl}/webhook`;
+  const privacyUrl = `${cleanApiUrl}/privacy`;
 
   useEffect(() => {
     let isMounted = true;
@@ -289,7 +300,7 @@ export default function SettingsPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: "10px" }}>
                     <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>Verified Business Name</span>
                     <span style={{ fontSize: "13.5px", fontWeight: "600", color: "var(--text-primary)" }}>
-                      {metaHealth?.verified_name || "Morihix Digital"}
+                      {metaHealth?.verified_name || "Morihix WA Manager"}
                     </span>
                   </div>
 
@@ -522,7 +533,7 @@ export default function SettingsPage() {
                   <span style={{ fontSize: "12.5px", fontWeight: "600", color: "var(--text-primary)" }}>Callback URL</span>
                   <button
                     type="button"
-                    onClick={() => handleCopy("https://morihix-wp.piyushassudani.in/webhook", "webhook")}
+                    onClick={() => handleCopy(webhookUrl, "webhook")}
                     className="btn-secondary"
                     style={{ fontSize: "11px", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: "4px" }}
                   >
@@ -531,7 +542,7 @@ export default function SettingsPage() {
                   </button>
                 </div>
                 <code style={{ fontSize: "13px", color: "var(--accent)", wordBreak: "break-all" }}>
-                  https://morihix-wp.piyushassudani.in/webhook
+                  {webhookUrl}
                 </code>
               </div>
 
@@ -560,7 +571,7 @@ export default function SettingsPage() {
                   <span style={{ fontSize: "12.5px", fontWeight: "600", color: "var(--text-primary)" }}>Privacy Policy URL (Meta App Review)</span>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <a
-                      href="https://morihix-wp.piyushassudani.in/privacy"
+                      href={privacyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-secondary"
@@ -571,7 +582,7 @@ export default function SettingsPage() {
                     </a>
                     <button
                       type="button"
-                      onClick={() => handleCopy("https://morihix-wp.piyushassudani.in/privacy", "privacy")}
+                      onClick={() => handleCopy(privacyUrl, "privacy")}
                       className="btn-secondary"
                       style={{ fontSize: "11px", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: "4px" }}
                     >
@@ -581,7 +592,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <code style={{ fontSize: "13px", color: "var(--accent)", wordBreak: "break-all" }}>
-                  https://morihix-wp.piyushassudani.in/privacy
+                  {privacyUrl}
                 </code>
               </div>
 
@@ -624,7 +635,7 @@ export default function SettingsPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px" }}>
               <div style={{ padding: "16px", background: "var(--bg-tertiary)", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
                 <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase" }}>Edition</div>
-                <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", marginTop: "4px" }}>Morihix V2.4 PRO</div>
+                <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", marginTop: "4px" }}>Morihix WA Manager V2.4</div>
                 <div style={{ fontSize: "12px", color: "var(--secondary-accent)", marginTop: "4px" }}>● Production Cloud Active</div>
               </div>
 

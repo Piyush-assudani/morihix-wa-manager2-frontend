@@ -317,13 +317,13 @@ export default function ContactsPage() {
                       <Upload size={24} />
                     </div>
                     <h3 style={{ fontSize: "16px" }}>Drop file or click to browse</h3>
-                    <p style={{ fontSize: "13px" }}>Supports .xlsx, .xls, .csv</p>
+                    <p style={{ fontSize: "13px" }}>Supports .xlsx, .xls, .csv, .txt</p>
                   </div>
                 )}
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".xlsx,.xls,.csv"
+                  accept=".xlsx,.xls,.csv,.txt"
                   onChange={handleFileSelect}
                   style={{ display: "none" }}
                   disabled={uploading}

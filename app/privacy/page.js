@@ -59,7 +59,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p style={{ fontSize: "15px", color: "#94a3b8", maxWidth: "600px", margin: "0 auto", lineHeight: 1.6 }}>
-            How Morihix Digital protects, manages, and safeguards client credentials and WhatsApp messaging communications.
+            How Morihix WA Manager protects, manages, and safeguards client credentials and WhatsApp messaging communications.
           </p>
           <div style={{ marginTop: "16px", fontSize: "12px", color: "#64748b" }}>
             Last Updated: October 2026 &bull; Effective Immediately
@@ -84,7 +84,7 @@ export default function PrivacyPage() {
               <Lock size={20} color="#059669" /> 1. Overview & Commitment
             </h2>
             <p style={{ margin: 0, fontSize: "14px" }}>
-              Morihix Digital provides enterprise-grade WhatsApp Cloud API marketing, CRM synchronization, and automated communication solutions. We respect the privacy of our business clients and their customers, complying with applicable data protection laws and Meta Platform Terms.
+              Morihix WA Manager provides enterprise-grade WhatsApp Cloud API marketing, CRM synchronization, and automated communication solutions. We respect the privacy of our business clients and their customers, complying with applicable data protection laws and Meta Platform Terms.
             </p>
           </section>
 
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
               <Eye size={20} color="#059669" /> 4. No Third-Party Selling
             </h2>
             <p style={{ margin: 0, fontSize: "14px" }}>
-              Morihix Digital does not sell, rent, or monetize client contact lists or customer communications. Data is solely processed to facilitate verified WhatsApp Cloud API broadcasts and live chat operations.
+              Morihix WA Manager does not sell, rent, or monetize client contact lists or customer communications. Data is solely processed to facilitate verified WhatsApp Cloud API broadcasts and live chat operations.
             </p>
           </section>
 

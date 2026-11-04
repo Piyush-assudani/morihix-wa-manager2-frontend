@@ -25,7 +25,7 @@ export default function BrandLogo({ size = 36, showText = false, textClassName =
       >
         <img
           src="/icon.png"
-          alt="Morihix Digital Logo"
+          alt="Morihix WA Manager Logo"
           width={size}
           height={size}
           style={{
@@ -41,7 +41,7 @@ export default function BrandLogo({ size = 36, showText = false, textClassName =
         <div style={{ display: "flex", flexDirection: "column", textAlign: "left", lineHeight: 1.15 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ fontSize: "16px", fontWeight: "800", letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-              Morihix <span style={{ color: "#d97706" }}>Digital</span>
+              Morihix <span style={{ color: "#d97706" }}>WA Manager</span>
             </span>
             <span
               style={{
