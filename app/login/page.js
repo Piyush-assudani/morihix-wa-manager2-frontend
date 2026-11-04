@@ -64,7 +64,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error("Login fetch error:", err);
-      setError("Unable to connect to server. Please check your internet or try again.");
+      setError(err.message || "Unable to connect to server. Please check your network or try again.");
     } finally {
       setLoading(false);
     }
