@@ -301,14 +301,14 @@ export default function SettingsPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: "10px" }}>
                     <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>Verified Business Name</span>
                     <span style={{ fontSize: "13.5px", fontWeight: "600", color: "var(--text-primary)" }}>
-                      {metaHealth?.verified_name || "Morihix WA Manager"}
+                      {metaHealth?.verified_name || "Morihix Private Limited"}
                     </span>
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: "10px" }}>
                     <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>WhatsApp Phone Number</span>
                     <span style={{ fontSize: "13.5px", fontWeight: "600", color: "var(--accent)" }}>
-                      {metaHealth?.display_phone_number || "+91 91637 53249"}
+                      {metaHealth?.display_phone_number || "+91 94616 31008"}
                     </span>
                   </div>
 
@@ -553,7 +553,7 @@ export default function SettingsPage() {
                   <span style={{ fontSize: "12.5px", fontWeight: "600", color: "var(--text-primary)" }}>Verify Token</span>
                   <button
                     type="button"
-                    onClick={() => handleCopy("morihix_wp_verify_token_2026", "token")}
+                    onClick={() => handleCopy("vijaysetu_webhook_verify_token", "token")}
                     className="btn-secondary"
                     style={{ fontSize: "11px", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: "4px" }}
                   >
@@ -562,7 +562,7 @@ export default function SettingsPage() {
                   </button>
                 </div>
                 <code style={{ fontSize: "13px", color: "var(--text-primary)" }}>
-                  morihix_wp_verify_token_2026
+                  vijaysetu_webhook_verify_token
                 </code>
               </div>
 
