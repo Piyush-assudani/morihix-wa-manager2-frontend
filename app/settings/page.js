@@ -301,14 +301,14 @@ export default function SettingsPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: "10px" }}>
                     <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>Verified Business Name</span>
                     <span style={{ fontSize: "13.5px", fontWeight: "600", color: "var(--text-primary)" }}>
-                      {metaHealth?.verified_name || "Morihix Private Limited"}
+                      {metaHealth?.verified_name || "chaggan_hudda"}
                     </span>
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: "10px" }}>
                     <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>WhatsApp Phone Number</span>
                     <span style={{ fontSize: "13.5px", fontWeight: "600", color: "var(--accent)" }}>
-                      {metaHealth?.display_phone_number || "+91 94616 31008"}
+                      {metaHealth?.display_phone_number || "+91 95210 85858"}
                     </span>
                   </div>
 
