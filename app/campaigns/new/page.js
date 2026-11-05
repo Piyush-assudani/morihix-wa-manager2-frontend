@@ -131,6 +131,7 @@ export default function NewCampaignPage() {
 
       const res = await api.post("/api/campaigns", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        timeout: 120000,
       });
 
       const launchMsg = `Campaign "${res.data.campaign.name}" launched successfully! Processing ${res.data.campaign.total_recipients} recipients...`;
@@ -138,11 +139,20 @@ export default function NewCampaignPage() {
       showSuccess(launchMsg);
 
       setTimeout(() => {
-        router.push("/campaigns");
-      }, 2000);
+        router.push(res.data.campaign?.id ? `/campaigns/${res.data.campaign.id}` : "/campaigns");
+      }, 1500);
     } catch (err) {
       console.error("Campaign creation failed:", err);
-      const errMsg = err.response?.data?.error || "Failed to create campaign";
+      let errMsg = err.response?.data?.error || err.response?.data?.message;
+      if (!errMsg) {
+        if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+          errMsg = "Media upload timed out. Please check your internet connection or try again.";
+        } else if (err.message) {
+          errMsg = err.message;
+        } else {
+          errMsg = "Failed to create campaign";
+        }
+      }
       setError(errMsg);
       showError(errMsg);
     } finally {
