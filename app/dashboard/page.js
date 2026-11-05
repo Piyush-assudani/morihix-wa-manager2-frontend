@@ -5,6 +5,7 @@ import { Users, Megaphone, Send, Mail, Briefcase, FileText, CheckCircle, BarChar
 import { format } from "date-fns";
 import api from "../lib/api";
 import Link from "next/link";
+import { parseSafeDate } from "../lib/dateUtils";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
@@ -275,7 +276,8 @@ export default function DashboardPage() {
                 const contactName = msg.name || `+${msg.phone_number}`;
                 let timeStr = "";
                 try {
-                  timeStr = msg.timestamp ? format(new Date(msg.timestamp), "MMM d, h:mm a") : "";
+                  const d = parseSafeDate(msg.timestamp);
+                  timeStr = d ? format(d, "MMM d, h:mm a") : "";
                 } catch (e) {
                   timeStr = "";
                 }

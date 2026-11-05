@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
+import { formatContactTime } from "../../lib/dateUtils";
 
 export default function ContactItem({ contact, isActive, onClick }) {
   const getInitials = () => {
@@ -16,14 +16,7 @@ export default function ContactItem({ contact, isActive, onClick }) {
   };
 
   const formatTime = (timestamp) => {
-    if (!timestamp) return "";
-    try {
-      const d = new Date(timestamp);
-      if (isNaN(d.getTime())) return "";
-      return formatDistanceToNow(d, { addSuffix: false });
-    } catch {
-      return "";
-    }
+    return formatContactTime(timestamp);
   };
 
   const truncate = (text, maxLen = 40) => {

@@ -6,6 +6,7 @@ import { ArrowDown, ArrowLeft, Phone, Trash2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import { deleteMessage } from "../../lib/api";
+import { parseSafeDate } from "../../lib/dateUtils";
 
 export default function ChatWindow({
   contact,
@@ -72,8 +73,8 @@ export default function ChatWindow({
 
   const formatDateLabel = (date) => {
     if (!date) return "Older messages (date unavailable)";
-    const d = new Date(date);
-    if (isNaN(d.getTime()) || d.getTime() <= 0) {
+    const d = parseSafeDate(date);
+    if (!d || isNaN(d.getTime()) || d.getTime() <= 0) {
       return "Older messages (date unavailable)";
     }
     if (isToday(d)) return "Today";
@@ -120,8 +121,10 @@ export default function ChatWindow({
     let lastDate = null;
 
     const chronologicalMessages = [...messages].sort((a, b) => {
-      const timeA = new Date(a.timestamp).getTime();
-      const timeB = new Date(b.timestamp).getTime();
+      const dateA = parseSafeDate(a.timestamp);
+      const dateB = parseSafeDate(b.timestamp);
+      const timeA = dateA ? dateA.getTime() : 0;
+      const timeB = dateB ? dateB.getTime() : 0;
       const validA = Number.isFinite(timeA) && timeA > 0;
       const validB = Number.isFinite(timeB) && timeB > 0;
 
@@ -132,7 +135,7 @@ export default function ChatWindow({
     });
 
     chronologicalMessages.forEach((msg, idx) => {
-      const msgDate = new Date(msg.timestamp);
+      const msgDate = parseSafeDate(msg.timestamp) || new Date();
 
       if (!lastDate || !isSameDay(lastDate, msgDate)) {
         elements.push(

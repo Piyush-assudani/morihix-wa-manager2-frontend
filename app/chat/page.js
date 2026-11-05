@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getContacts, getMessages, markMessagesAsRead } from "../lib/api";
 import { getSocket } from "../lib/socket";
+import { parseSafeDate } from "../lib/dateUtils";
 import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
 import { MessageCircle, ShieldCheck, Zap, Lock } from "lucide-react";
@@ -142,7 +143,7 @@ export default function ChatPage() {
             open: true,
             last_inbound_at: msg.timestamp,
             expires_at: new Date(
-              new Date(msg.timestamp).getTime() + 24 * 60 * 60 * 1000
+              (parseSafeDate(msg.timestamp) || new Date()).getTime() + 24 * 60 * 60 * 1000
             ).toISOString(),
           }));
           

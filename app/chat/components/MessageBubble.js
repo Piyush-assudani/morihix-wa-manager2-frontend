@@ -1,8 +1,8 @@
 "use client";
 
-import { format } from "date-fns";
 import { Check, CheckCheck, X, Trash2, FileText, Music, PlaySquare, Image as ImageIcon, File } from "lucide-react";
 import { normalizeMediaUrl } from "../../lib/api";
+import { formatMessageTime } from "../../lib/dateUtils";
 
 export function isImageUrl(url) {
   if (!url || typeof url !== "string") return false;
@@ -21,14 +21,7 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
   const isTemplate = message.message_body?.startsWith("[Template:");
 
   const formatTime = (timestamp) => {
-    if (!timestamp) return "";
-    try {
-      const d = new Date(timestamp);
-      if (isNaN(d.getTime())) return "";
-      return format(d, "HH:mm");
-    } catch {
-      return "";
-    }
+    return formatMessageTime(timestamp);
   };
 
   const renderStatus = () => {

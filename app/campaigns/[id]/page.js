@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Users, CheckCircle2, XCircle, Clock, Filter, Activity, MessageSquare, Image as ImageIcon } from "lucide-react";
 import api, { normalizeMediaUrl } from "../../lib/api";
 import { format } from "date-fns";
+import { parseSafeDate } from "../../lib/dateUtils";
 
 export default function CampaignDetailPage() {
   const { id } = useParams();
@@ -126,8 +127,10 @@ export default function CampaignDetailPage() {
     let validReadCount = 0;
     recipients.forEach(r => {
       if (r.status === 'read' && r.timestamp) {
-        const readTime = new Date(r.timestamp).getTime();
-        const sentTime = new Date(campaign.created_at).getTime();
+        const readDate = parseSafeDate(r.timestamp);
+        const sentDate = parseSafeDate(campaign.created_at);
+        const readTime = readDate ? readDate.getTime() : 0;
+        const sentTime = sentDate ? sentDate.getTime() : 0;
         if (readTime > sentTime) {
           totalReadTime += (readTime - sentTime);
           validReadCount++;
@@ -383,7 +386,10 @@ export default function CampaignDetailPage() {
                         {getStatusBadge(r.status, r.error_message)}
                       </td>
                       <td style={{ padding: "16px 24px", color: "var(--text-muted)", fontSize: "14px" }}>
-                        {format(new Date(r.timestamp), "MMM d, h:mm a")}
+                        {(() => {
+                          const d = parseSafeDate(r.timestamp);
+                          return d ? format(d, "MMM d, h:mm a") : "";
+                        })()}
                       </td>
                     </tr>
                   )) : (
