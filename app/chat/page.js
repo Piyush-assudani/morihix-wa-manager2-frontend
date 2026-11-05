@@ -199,8 +199,8 @@ export default function ChatPage() {
     const handleStatusUpdate = (data) => {
       setMessages((prev) =>
         prev.map((m) =>
-          m.meta_message_id === data.meta_message_id
-            ? { ...m, status: data.status }
+          (m.meta_message_id === data.meta_message_id || (data.id && String(m.id) === String(data.id)))
+            ? { ...m, status: data.status, error_message: data.error_message || (data.status === 'sent' ? null : m.error_message) }
             : m
         )
       );

@@ -5,7 +5,7 @@ import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { ArrowDown, ArrowLeft, Phone, Trash2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
-import { deleteMessage } from "../../lib/api";
+import api, { deleteMessage } from "../../lib/api";
 import { parseSafeDate, formatDisplayPhone } from "../../lib/dateUtils";
 
 export default function ChatWindow({
@@ -98,7 +98,17 @@ export default function ChatWindow({
     }
   };
 
-  
+  const handleRetryMessage = async (msg) => {
+    try {
+      const res = await api.post(`/api/messages/${msg.id}/retry`);
+      if (res.data) {
+        onMessageSent?.(res.data);
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to retry message.");
+    }
+  };
+
   const renderMessages = () => {
     if (!messages || messages.length === 0) {
       return (
@@ -154,6 +164,7 @@ export default function ChatWindow({
           message={msg}
           templates={templates} 
           onImageClick={setSelectedImage}
+          onRetry={handleRetryMessage}
           onDelete={() => {
             setDeleteError("");
             setPendingDeleteMessage(msg);

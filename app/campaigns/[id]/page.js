@@ -3,8 +3,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, CheckCircle2, XCircle, Clock, Filter, Activity, MessageSquare, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Users, Check, CheckCheck, XCircle, Clock, Filter, Activity, MessageSquare, Image as ImageIcon, RotateCw, AlertCircle } from "lucide-react";
 import api, { normalizeMediaUrl } from "../../lib/api";
+import { getSocket } from "../../lib/socket";
 import { format } from "date-fns";
 import { parseSafeDate, formatDisplayPhone } from "../../lib/dateUtils";
 
@@ -17,27 +18,99 @@ export default function CampaignDetailPage() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview"); // overview, messages, analytics
   const [filter, setFilter] = useState("all");
+  const [retryingAll, setRetryingAll] = useState(false);
+  const [retryingId, setRetryingId] = useState(null);
+  const [retryFeedback, setRetryFeedback] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      const [campRes, recRes, tmplRes] = await Promise.all([
+        api.get(`/api/campaigns/${id}`),
+        api.get(`/api/campaigns/${id}/recipients`),
+        api.get('/api/templates')
+      ]);
+      setCampaign(campRes.data);
+      setRecipients(recRes.data);
+      setTemplates(tmplRes.data);
+    } catch (err) {
+      console.error("Failed to fetch campaign data:", err);
+      setError("Failed to load campaign data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [campRes, recRes, tmplRes] = await Promise.all([
-          api.get(`/api/campaigns/${id}`),
-          api.get(`/api/campaigns/${id}/recipients`),
-          api.get('/api/templates')
-        ]);
-        setCampaign(campRes.data);
-        setRecipients(recRes.data);
-        setTemplates(tmplRes.data);
-      } catch (err) {
-        console.error("Failed to fetch campaign data:", err);
-        setError("Failed to load campaign data");
-      } finally {
-        setLoading(false);
-      }
-    };
     if (id) fetchData();
   }, [id]);
+
+  // Real-time socket listener for delivery and read receipts
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleStatusUpdate = (data) => {
+      setRecipients((prev) => {
+        const hasMatch = prev.some((r) => r.id === data.id || (data.meta_message_id && r.meta_message_id === data.meta_message_id));
+        if (!hasMatch && data.campaign_id !== id) return prev;
+
+        return prev.map((r) => {
+          if (r.id === data.id || (data.meta_message_id && r.meta_message_id === data.meta_message_id)) {
+            return {
+              ...r,
+              status: data.status,
+              error_message: data.error_message || (data.status === 'sent' ? null : r.error_message),
+              meta_message_id: data.meta_message_id || r.meta_message_id,
+            };
+          }
+          return r;
+        });
+      });
+
+      // Silently re-fetch campaign delivery counts
+      api.get(`/api/campaigns/${id}`).then((res) => {
+        if (res.data) setCampaign(res.data);
+      }).catch(() => {});
+    };
+
+    socket.on("message_status", handleStatusUpdate);
+    return () => {
+      socket.off("message_status", handleStatusUpdate);
+    };
+  }, [id]);
+
+  const handleRetryAll = async () => {
+    if (retryingAll) return;
+    setRetryingAll(true);
+    setRetryFeedback(null);
+    try {
+      const res = await api.post(`/api/campaigns/${id}/retry-failed`);
+      setRetryFeedback({
+        type: res.data.failed === 0 ? "success" : "warning",
+        message: `Retry completed: ${res.data.succeeded || 0} succeeded, ${res.data.failed || 0} still failed.`,
+      });
+      await fetchData();
+    } catch (err) {
+      setRetryFeedback({
+        type: "error",
+        message: err.response?.data?.error || "Failed to retry failed messages.",
+      });
+    } finally {
+      setRetryingAll(false);
+    }
+  };
+
+  const handleRetrySingle = async (messageId) => {
+    if (retryingId) return;
+    setRetryingId(messageId);
+    try {
+      await api.post(`/api/campaigns/${id}/retry/${messageId}`);
+      await fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to retry message.");
+    } finally {
+      setRetryingId(null);
+    }
+  };
 
   const statsMap = useMemo(() => {
     if (!campaign?.stats) return { sent: 0, delivered: 0, read: 0, failed: 0 };
@@ -80,33 +153,53 @@ export default function CampaignDetailPage() {
     if (!campaign?.media_id && header && ["IMAGE", "VIDEO", "DOCUMENT"].includes(header.format)) {
       return `Template "${campaign.template_name}" requires a ${header.format.toLowerCase()} header that was missing from this campaign.`;
     }
-    return "Meta API rejected the message during dispatch (detailed error was not saved on earlier runs).";
-  };
-
-  const getDerivedStatus = (status, errorMessage) => {
-    if (status === "failed" && errorMessage) {
-      if (errorMessage.toLowerCase().includes("undeliverable")) return "not-on-whatsapp";
-      if (errorMessage.toLowerCase().includes("ecosystem")) return "spam-filtered";
-    }
-    return status?.toLowerCase() || "unknown";
+    return "Meta API rejected the message during dispatch.";
   };
 
   const getStatusBadge = (status, errorMessage) => {
-    const derivedStatus = getDerivedStatus(status, errorMessage);
-    const resolvedErr = errorMessage || (status === "failed" ? getFallbackErrorMessage() : "");
-    switch (derivedStatus) {
-      case "read": return <span style={{ color: "#34B7F1", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Read</span>;
-      case "delivered": return <span style={{ color: "var(--status-delivered)", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={14} /> Delivered</span>;
-      case "not-on-whatsapp": return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> Not on WA</span>;
-      case "spam-filtered": return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={14} /> Spam</span>;
-      case "failed": return <span style={{ color: "var(--status-failed)", display: "flex", alignItems: "center", gap: "4px" }} title={resolvedErr}><XCircle size={14} /> Failed</span>;
-      default: return <span style={{ color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px", textTransform: "capitalize" }}><Clock size={14} /> {status}</span>;
+    switch (status) {
+      case "read":
+        return (
+          <span style={{ color: "#53bdeb", display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600, fontSize: "13px" }}>
+            <CheckCheck size={16} color="#53bdeb" /> Read
+          </span>
+        );
+      case "delivered":
+        return (
+          <span style={{ color: "#8696a0", display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 500, fontSize: "13px" }}>
+            <CheckCheck size={16} color="#8696a0" /> Delivered
+          </span>
+        );
+      case "sent":
+        return (
+          <span style={{ color: "#8696a0", display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 500, fontSize: "13px" }}>
+            <Check size={16} color="#8696a0" /> Sent
+          </span>
+        );
+      case "failed":
+        const err = errorMessage || getFallbackErrorMessage();
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+            <span style={{ color: "#ea0038", display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600, fontSize: "13px" }}>
+              <XCircle size={16} color="#ea0038" /> Failed
+            </span>
+            <span style={{ color: "#ea0038", fontSize: "11px", opacity: 0.9, maxWidth: "280px", lineHeight: "1.3" }}>
+              {err}
+            </span>
+          </div>
+        );
+      default:
+        return (
+          <span style={{ color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: "6px", textTransform: "capitalize", fontSize: "13px" }}>
+            <Clock size={16} /> {status || "Pending"}
+          </span>
+        );
     }
   };
 
   const filteredRecipients = useMemo(() => {
     if (filter === "all") return recipients;
-    return recipients.filter((r) => getDerivedStatus(r.status, r.error_message) === filter);
+    return recipients.filter((r) => r.status === filter);
   }, [recipients, filter]);
 
   const analyticsData = useMemo(() => {
@@ -347,32 +440,86 @@ export default function CampaignDetailPage() {
 
         {activeTab === "messages" && (
           <div className="ui-card" style={{ padding: 0, overflow: "hidden", border: "none", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
-            <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "600" }}>Recipient Messages</h3>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Filter size={16} className="text-muted" />
-                <select 
-                  value={filter} 
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="ui-input"
-                  style={{ width: "180px", padding: "8px 12px", borderRadius: "6px" }}
+            {retryFeedback && (
+              <div style={{
+                padding: "12px 24px",
+                background: retryFeedback.type === "error" ? "rgba(234, 0, 56, 0.08)" : retryFeedback.type === "warning" ? "rgba(234, 179, 8, 0.12)" : "rgba(34, 197, 94, 0.1)",
+                color: retryFeedback.type === "error" ? "#ea0038" : retryFeedback.type === "warning" ? "#ca8a04" : "#15803d",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderBottom: "1px solid var(--border-color)",
+                fontSize: "13px",
+                fontWeight: 500
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <AlertCircle size={16} />
+                  <span>{retryFeedback.message}</span>
+                </div>
+                <button
+                  onClick={() => setRetryFeedback(null)}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "inherit", padding: 0 }}
                 >
-                  <option value="all">All Statuses</option>
-                  <option value="sent">Sent</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="read">Read</option>
-                  <option value="failed">Failed</option>
-                </select>
+                  &times;
+                </button>
+              </div>
+            )}
+            <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff", flexWrap: "wrap", gap: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0 }}>Recipient Messages</h3>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", background: "#f1f5f9", padding: "2px 8px", borderRadius: "12px" }}>
+                  {filteredRecipients.length} messages
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                {failedCount > 0 && (
+                  <button
+                    onClick={handleRetryAll}
+                    disabled={retryingAll}
+                    className="btn-primary"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "8px 14px",
+                      fontSize: "13px",
+                      background: "#ea0038",
+                      borderColor: "#ea0038",
+                      color: "#fff",
+                      cursor: retryingAll ? "not-allowed" : "pointer"
+                    }}
+                    title="Retry sending message to all failed recipients"
+                  >
+                    <RotateCw size={14} className={retryingAll ? "animate-spin" : ""} />
+                    {retryingAll ? "Retrying..." : `Retry Failed (${failedCount})`}
+                  </button>
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Filter size={16} className="text-muted" />
+                  <select 
+                    value={filter} 
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="ui-input"
+                    style={{ width: "160px", padding: "8px 12px", borderRadius: "6px" }}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="sent">Sent</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="read">Read</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
               </div>
             </div>
             
             <div className="table-responsive" style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto", background: "#fff", width: "100%" }}>
-              <table style={{ width: "100%", minWidth: "480px", borderCollapse: "collapse", textAlign: "left" }}>
+              <table style={{ width: "100%", minWidth: "560px", borderCollapse: "collapse", textAlign: "left" }}>
                 <thead style={{ background: "var(--bg-tertiary)", position: "sticky", top: 0, zIndex: 1 }}>
                   <tr>
                     <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: 600, fontSize: "13px", textTransform: "uppercase" }}>Recipient</th>
                     <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: 600, fontSize: "13px", textTransform: "uppercase" }}>Status</th>
                     <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: 600, fontSize: "13px", textTransform: "uppercase" }}>Time</th>
+                    <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: 600, fontSize: "13px", textTransform: "uppercase", textAlign: "right" }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,10 +538,34 @@ export default function CampaignDetailPage() {
                           return d ? format(d, "MMM d, h:mm a") : "";
                         })()}
                       </td>
+                      <td style={{ padding: "16px 24px", textAlign: "right" }}>
+                        {r.status === "failed" ? (
+                          <button
+                            onClick={() => handleRetrySingle(r.id)}
+                            disabled={retryingId === r.id}
+                            className="btn-secondary"
+                            style={{
+                              padding: "6px 12px",
+                              fontSize: "12px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              borderRadius: "6px",
+                              cursor: retryingId === r.id ? "not-allowed" : "pointer"
+                            }}
+                            title="Retry sending to this recipient"
+                          >
+                            <RotateCw size={12} className={retryingId === r.id ? "animate-spin" : ""} />
+                            {retryingId === r.id ? "Sending..." : "Retry"}
+                          </button>
+                        ) : (
+                          <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>—</span>
+                        )}
+                      </td>
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan="3" style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)" }}>
+                      <td colSpan="4" style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)" }}>
                         No recipients match this filter.
                       </td>
                     </tr>

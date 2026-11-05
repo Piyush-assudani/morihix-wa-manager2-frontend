@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, CheckCheck, X, Trash2, FileText, Music, PlaySquare, Image as ImageIcon, File } from "lucide-react";
+import { Check, CheckCheck, X, Trash2, RotateCw, FileText, Music, PlaySquare, Image as ImageIcon, File } from "lucide-react";
 import { normalizeMediaUrl } from "../../lib/api";
 import { formatMessageTime } from "../../lib/dateUtils";
 
@@ -16,7 +16,7 @@ export function isImageUrl(url) {
   );
 }
 
-export default function MessageBubble({ message, templates, onImageClick, onDelete }) {
+export default function MessageBubble({ message, templates, onImageClick, onDelete, onRetry }) {
   const isOutbound = message.direction === "outbound";
   const isTemplate = message.message_body?.startsWith("[Template:");
 
@@ -28,10 +28,10 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
     if (!isOutbound) return null;
 
     switch (message.status) {
-      case "sent": return <span className="message-status sent"><Check size={14} /></span>;
-      case "delivered": return <span className="message-status delivered"><CheckCheck size={14} /></span>;
-      case "read": return <span className="message-status read"><CheckCheck size={14} /></span>;
-      case "failed": return <span className="message-status failed"><X size={14} /></span>;
+      case "sent": return <span className="message-status sent" title="Sent (Single Tick)"><Check size={14} /></span>;
+      case "delivered": return <span className="message-status delivered" title="Delivered (Double Tick)"><CheckCheck size={14} /></span>;
+      case "read": return <span className="message-status read" title="Read (Blue Tick)"><CheckCheck size={14} color="#53bdeb" /></span>;
+      case "failed": return <span className="message-status failed" title={message.error_message || "Delivery Failed"}><X size={14} color="#ea0038" /></span>;
       default: return null;
     }
   };
@@ -215,6 +215,15 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
         <div className="message-meta" style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end", marginTop: "4px" }}>
           <span className="message-time">{formatTime(message.timestamp)}</span>
           {renderStatus()}
+          {isOutbound && message.status === 'failed' && onRetry && (
+            <button 
+              onClick={() => onRetry(message)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', marginLeft: '4px', color: '#ea0038', display: 'inline-flex', alignItems: 'center' }}
+              title={message.error_message ? `Failed: ${message.error_message}. Click to retry.` : "Failed to deliver. Click to retry."}
+            >
+              <RotateCw size={12} />
+            </button>
+          )}
           {isOutbound && (
             <button 
               onClick={() => onDelete?.(message.id)}
@@ -225,6 +234,11 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
             </button>
           )}
         </div>
+        {isOutbound && message.status === 'failed' && message.error_message && (
+          <div style={{ color: "#ea0038", fontSize: "11px", marginTop: "4px", background: "rgba(234, 0, 56, 0.08)", padding: "4px 8px", borderRadius: "4px", wordBreak: "break-word" }}>
+            ⚠️ {message.error_message}
+          </div>
+        )}
       </div>
     </div>
   );
