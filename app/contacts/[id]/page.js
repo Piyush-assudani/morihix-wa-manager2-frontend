@@ -49,16 +49,25 @@ export default function ListContactsPage() {
     let str = String(val).trim();
     if (str.includes(".")) str = str.split(".")[0];
     let digits = str.replace(/\D/g, "");
-    if (digits.length === 13 && /^91[6-9]\d{9}0$/.test(digits)) {
+    if (digits.startsWith("0")) digits = digits.replace(/^0+/, "");
+    if (digits.startsWith("91")) {
       digits = digits.slice(0, 12);
-    } else if (digits.length === 11 && /^[6-9]\d{9}0$/.test(digits)) {
-      digits = digits.slice(0, 10);
-    } else if (digits.length === 11 && digits.startsWith("0")) {
-      digits = "91" + digits.slice(1);
-    } else if (digits.length === 10) {
-      digits = "91" + digits;
+    } else if (digits.length >= 10) {
+      digits = "91" + digits.slice(0, 10);
     }
     return digits;
+  };
+
+  const formatDisplayPhone = (raw) => {
+    if (!raw) return "";
+    let digits = String(raw).replace(/\D/g, "");
+    if (digits.startsWith("0")) digits = digits.replace(/^0+/, "");
+    if (digits.startsWith("91")) {
+      digits = digits.slice(0, 12);
+    } else if (digits.length >= 10) {
+      digits = "91" + digits.slice(0, 10);
+    }
+    return "+" + digits;
   };
 
   const handleAddContact = async (e) => {
@@ -181,7 +190,7 @@ export default function ListContactsPage() {
                     <td style={{ padding: "16px 20px", color: "var(--text-secondary)" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <Phone size={14} />
-                        +{String(c.phone_number || "").replace(/^\+/, "")}
+                        {formatDisplayPhone(c.phone_number)}
                         {c.not_on_wp && (
                           <span style={{ fontSize: "12px", background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", padding: "2px 8px", borderRadius: "12px", display: "flex", alignItems: "center", gap: "4px" }}>
                             <AlertCircle size={12} /> Not on WA
@@ -244,7 +253,16 @@ export default function ListContactsPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">Mobile Number *</label>
-                <input type="text" className="form-input" value={newPhone} onChange={e => setNewPhone(e.target.value)} disabled={adding} required placeholder="10-digit number" />
+                <input 
+                  type="tel" 
+                  className="form-input" 
+                  value={newPhone} 
+                  onChange={e => setNewPhone(e.target.value.replace(/[^\d+\s-]/g, ""))} 
+                  maxLength={14}
+                  disabled={adding} 
+                  required 
+                  placeholder="10-digit number (or 12-digit with 91)" 
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">City</label>
@@ -281,7 +299,16 @@ export default function ListContactsPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">Mobile Number *</label>
-                <input type="text" className="form-input" value={editPhone} onChange={e => setEditPhone(e.target.value)} disabled={editing} required placeholder="10-digit number" />
+                <input 
+                  type="tel" 
+                  className="form-input" 
+                  value={editPhone} 
+                  onChange={e => setEditPhone(e.target.value.replace(/[^\d+\s-]/g, ""))} 
+                  maxLength={14}
+                  disabled={editing} 
+                  required 
+                  placeholder="10-digit number (or 12-digit with 91)" 
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">City</label>
