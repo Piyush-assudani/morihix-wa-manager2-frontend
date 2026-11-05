@@ -44,12 +44,30 @@ export default function ListContactsPage() {
     }
   };
 
+  const sanitizeInputPhone = (val) => {
+    if (!val) return "";
+    let str = String(val).trim();
+    if (str.includes(".")) str = str.split(".")[0];
+    let digits = str.replace(/\D/g, "");
+    if (digits.length === 13 && /^91[6-9]\d{9}0$/.test(digits)) {
+      digits = digits.slice(0, 12);
+    } else if (digits.length === 11 && /^[6-9]\d{9}0$/.test(digits)) {
+      digits = digits.slice(0, 10);
+    } else if (digits.length === 11 && digits.startsWith("0")) {
+      digits = "91" + digits.slice(1);
+    } else if (digits.length === 10) {
+      digits = "91" + digits;
+    }
+    return digits;
+  };
+
   const handleAddContact = async (e) => {
     e.preventDefault();
     if (!newPhone) return;
     setAdding(true);
     try {
-      await addContactToList(id, { name: newName, phone_number: newPhone, city: newCity });
+      const sanitized = sanitizeInputPhone(newPhone) || newPhone.trim();
+      await addContactToList(id, { name: newName, phone_number: sanitized, city: newCity });
       setShowAddModal(false);
       setNewName("");
       setNewPhone("");
@@ -89,7 +107,8 @@ export default function ListContactsPage() {
     if (!editPhone) return;
     setEditing(true);
     try {
-      await updateContact(editContactId, { name: editName, phone_number: editPhone, city: editCity });
+      const sanitized = sanitizeInputPhone(editPhone) || editPhone.trim();
+      await updateContact(editContactId, { name: editName, phone_number: sanitized, city: editCity });
       setShowEditModal(false);
       showSuccess("Contact details updated successfully!");
       fetchContacts();
@@ -162,7 +181,7 @@ export default function ListContactsPage() {
                     <td style={{ padding: "16px 20px", color: "var(--text-secondary)" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <Phone size={14} />
-                        +{c.phone_number}
+                        +{String(c.phone_number || "").replace(/^\+/, "")}
                         {c.not_on_wp && (
                           <span style={{ fontSize: "12px", background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", padding: "2px 8px", borderRadius: "12px", display: "flex", alignItems: "center", gap: "4px" }}>
                             <AlertCircle size={12} /> Not on WA
