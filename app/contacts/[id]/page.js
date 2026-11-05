@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Users, Phone, MapPin, Plus, Trash2, X, Edit, AlertCircle } from "lucide-react";
 import { getListContacts, deleteContact, addContactToList, updateContact } from "../../lib/api";
 import { useToast } from "../../components/ToastProvider";
+import { formatDisplayPhone } from "../../lib/dateUtils";
 
 export default function ListContactsPage() {
   const { showSuccess, showError } = useToast();
@@ -56,18 +57,6 @@ export default function ListContactsPage() {
       digits = "91" + digits.slice(0, 10);
     }
     return digits;
-  };
-
-  const formatDisplayPhone = (raw) => {
-    if (!raw) return "";
-    let digits = String(raw).replace(/\D/g, "");
-    if (digits.startsWith("0")) digits = digits.replace(/^0+/, "");
-    if (digits.startsWith("91")) {
-      digits = digits.slice(0, 12);
-    } else if (digits.length >= 10) {
-      digits = "91" + digits.slice(0, 10);
-    }
-    return "+" + digits;
   };
 
   const handleAddContact = async (e) => {

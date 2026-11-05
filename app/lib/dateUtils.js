@@ -68,4 +68,21 @@ export const formatContactTime = (val) => {
   }
 };
 
+/**
+ * Format and sanitize phone number for display (e.g. +919413879444)
+ * Enforces exactly 12 digits with 91, removing any accidental trailing zeros.
+ */
+export const formatDisplayPhone = (raw) => {
+  if (!raw) return "";
+  let digits = String(raw).replace(/\D/g, "");
+  if (digits.startsWith("0")) digits = digits.replace(/^0+/, "");
+  if (digits.startsWith("91")) {
+    digits = digits.slice(0, 12);
+  } else if (digits.length >= 10) {
+    digits = "91" + digits.slice(0, 10);
+  }
+  return "+" + digits;
+};
+
 export { isToday, isYesterday, isSameDay };
+

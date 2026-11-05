@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Users, CheckCircle2, XCircle, Clock, Filter, Activity, MessageSquare, Image as ImageIcon } from "lucide-react";
 import api, { normalizeMediaUrl } from "../../lib/api";
 import { format } from "date-fns";
-import { parseSafeDate } from "../../lib/dateUtils";
+import { parseSafeDate, formatDisplayPhone } from "../../lib/dateUtils";
 
 export default function CampaignDetailPage() {
   const { id } = useParams();
@@ -380,7 +380,7 @@ export default function CampaignDetailPage() {
                     <tr key={r.id} style={{ borderBottom: i === filteredRecipients.length - 1 ? "none" : "1px solid var(--border-color)" }}>
                       <td style={{ padding: "16px 24px" }}>
                         <div style={{ fontWeight: 500, color: "var(--text-primary)" }}>{r.name || "Unknown"}</div>
-                        <div style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "2px" }}>+{r.phone_number}</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "2px" }}>{formatDisplayPhone(r.phone_number)}</div>
                       </td>
                       <td style={{ padding: "16px 24px", fontSize: "14px" }}>
                         {getStatusBadge(r.status, r.error_message)}

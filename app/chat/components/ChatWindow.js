@@ -6,7 +6,7 @@ import { ArrowDown, ArrowLeft, Phone, Trash2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import { deleteMessage } from "../../lib/api";
-import { parseSafeDate } from "../../lib/dateUtils";
+import { parseSafeDate, formatDisplayPhone } from "../../lib/dateUtils";
 
 export default function ChatWindow({
   contact,
@@ -206,7 +206,7 @@ export default function ChatWindow({
               {contact.name || contact.phone_number}
             </div>
             <div className="chat-header-phone">
-              {contact.name ? contact.phone_number : ""}
+              {contact.name ? formatDisplayPhone(contact.phone_number) : ""}
               {windowInfo?.open && (
                 <span
                   style={{

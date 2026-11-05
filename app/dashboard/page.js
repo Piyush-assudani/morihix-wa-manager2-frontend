@@ -5,7 +5,7 @@ import { Users, Megaphone, Send, Mail, Briefcase, FileText, CheckCircle, BarChar
 import { format } from "date-fns";
 import api from "../lib/api";
 import Link from "next/link";
-import { parseSafeDate } from "../lib/dateUtils";
+import { parseSafeDate, formatDisplayPhone } from "../lib/dateUtils";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
@@ -273,7 +273,7 @@ export default function DashboardPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {inboundReplies.map((msg) => {
-                const contactName = msg.name || `+${msg.phone_number}`;
+                const contactName = msg.name || formatDisplayPhone(msg.phone_number);
                 let timeStr = "";
                 try {
                   const d = parseSafeDate(msg.timestamp);
