@@ -148,12 +148,12 @@ export default function CampaignDetailPage() {
 
   const getFallbackErrorMessage = () => {
     if (campaign?.media_id && template && (!header || !["IMAGE", "VIDEO", "DOCUMENT"].includes(header.format))) {
-      return `Template "${campaign.template_name}" does not have a media header, but media was attached to this campaign (Meta API #132000: Header parameter mismatch).`;
+      return `Template "${campaign.template_name}" does not have a media header, but media was attached to this campaign.`;
     }
     if (!campaign?.media_id && header && ["IMAGE", "VIDEO", "DOCUMENT"].includes(header.format)) {
       return `Template "${campaign.template_name}" requires a ${header.format.toLowerCase()} header that was missing from this campaign.`;
     }
-    return "Meta API rejected the message during dispatch.";
+    return "Undeliverable by Meta WhatsApp Cloud (check payment method or template approval on Meta Business Manager).";
   };
 
   const getStatusBadge = (status, errorMessage) => {
@@ -177,13 +177,15 @@ export default function CampaignDetailPage() {
           </span>
         );
       case "failed":
-        const err = errorMessage || getFallbackErrorMessage();
+        const err = (errorMessage && !errorMessage.startsWith("wamid.") && !errorMessage.startsWith("wamid:"))
+          ? errorMessage
+          : getFallbackErrorMessage();
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
             <span style={{ color: "#ea0038", display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600, fontSize: "13px" }}>
               <XCircle size={16} color="#ea0038" /> Failed
             </span>
-            <span style={{ color: "#ea0038", fontSize: "11px", opacity: 0.9, maxWidth: "280px", lineHeight: "1.3" }}>
+            <span style={{ color: "#ea0038", fontSize: "11px", opacity: 0.9, maxWidth: "340px", lineHeight: "1.3" }}>
               {err}
             </span>
           </div>
@@ -208,10 +210,11 @@ export default function CampaignDetailPage() {
     const fallbackErr = getFallbackErrorMessage();
     const errors = {};
     (recipients || []).forEach(r => {
-      if (r.status === 'failed' && r.error_message) {
-        errors[r.error_message] = (errors[r.error_message] || 0) + 1;
-      } else if (r.status === 'failed') {
-        errors[fallbackErr] = (errors[fallbackErr] || 0) + 1;
+      if (r.status === 'failed') {
+        const msg = (r.error_message && !r.error_message.startsWith("wamid.") && !r.error_message.startsWith("wamid:"))
+          ? r.error_message
+          : fallbackErr;
+        errors[msg] = (errors[msg] || 0) + 1;
       }
     });
     const errorList = Object.entries(errors).map(([msg, count]) => ({ msg, count })).sort((a,b) => b.count - a.count);
