@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, Check, CheckCheck, XCircle, Clock, Filter, Activity, MessageSquare, Image as ImageIcon, RotateCw, AlertCircle } from "lucide-react";
+import { ArrowLeft, Users, Check, CheckCheck, XCircle, Clock, Filter, Activity, MessageSquare, Image as ImageIcon, RotateCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import api, { normalizeMediaUrl } from "../../lib/api";
 import { getSocket } from "../../lib/socket";
 import { format } from "date-fns";
@@ -203,11 +203,11 @@ export default function CampaignDetailPage() {
   }, [recipients, filter]);
 
   const analyticsData = useMemo(() => {
-    if (!campaign || !recipients.length) return null;
+    if (!campaign) return null;
     
     const fallbackErr = getFallbackErrorMessage();
     const errors = {};
-    recipients.forEach(r => {
+    (recipients || []).forEach(r => {
       if (r.status === 'failed' && r.error_message) {
         errors[r.error_message] = (errors[r.error_message] || 0) + 1;
       } else if (r.status === 'failed') {
@@ -218,7 +218,7 @@ export default function CampaignDetailPage() {
 
     let totalReadTime = 0;
     let validReadCount = 0;
-    recipients.forEach(r => {
+    (recipients || []).forEach(r => {
       if (r.status === 'read' && r.timestamp) {
         const readDate = parseSafeDate(r.timestamp);
         const sentDate = parseSafeDate(campaign.created_at);
@@ -576,7 +576,14 @@ export default function CampaignDetailPage() {
           </div>
         )}
 
-        {activeTab === "analytics" && analyticsData && (
+        {activeTab === "analytics" && (
+          !analyticsData || totalContacts === 0 ? (
+            <div style={{ background: "#fff", padding: "48px 24px", borderRadius: "12px", textAlign: "center", color: "var(--text-muted)" }}>
+              <Activity size={36} color="var(--accent)" style={{ opacity: 0.6, margin: "0 auto 12px" }} />
+              <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "6px" }}>No Analytics Data Yet</h3>
+              <p style={{ fontSize: "14px" }}>Analytics and funnel metrics will populate once recipient messages are dispatched.</p>
+            </div>
+          ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px" }}>
             
             {/* Left Column: Key Metrics */}
@@ -632,14 +639,14 @@ export default function CampaignDetailPage() {
                 <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>Error Analysis</h3>
                 <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "16px" }}>Breakdown of message delivery failures</p>
                 
-                {analyticsData.errorList.length > 0 ? (
+                {analyticsData.errorList && analyticsData.errorList.length > 0 ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                     {analyticsData.errorList.map((err, idx) => (
                       <div key={idx} style={{ padding: "12px", border: "1px solid var(--border-color)", borderRadius: "8px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                           <span style={{ fontWeight: "500", color: "var(--status-failed)", fontSize: "14px" }}>{err.count} {err.count === 1 ? 'failure' : 'failures'}</span>
                           <span style={{ fontSize: "12px", color: "var(--text-muted)", background: "#f1f5f9", padding: "2px 6px", borderRadius: "12px" }}>
-                            {Math.round((err.count / failedCount) * 100)}% of errors
+                            {failedCount > 0 ? Math.round((err.count / failedCount) * 100) : 100}% of errors
                           </span>
                         </div>
                         <div style={{ color: "var(--text-secondary)", fontSize: "13px", lineHeight: "1.4" }}>
@@ -659,6 +666,7 @@ export default function CampaignDetailPage() {
             </div>
 
           </div>
+          )
         )}
 
       </div>
