@@ -31,7 +31,10 @@ export default function ChatWindow({
 
   useEffect(() => {
     import("../../lib/api").then(({ getTemplates }) => {
-      getTemplates().then(res => setTemplates(res.data)).catch(console.error);
+      getTemplates().then(res => {
+        const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        setTemplates(list);
+      }).catch(console.error);
     });
   }, []);
   const hasNewMessages =

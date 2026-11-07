@@ -106,7 +106,26 @@ export default function MessageBubble({ message, templates, onImageClick, onDele
     const template = templates?.find(t => t.name === templateName);
 
     if (!template) {
-      return <div className="message-text">Template: {templateName} (Content hidden)</div>;
+      let fallbackMediaSrc = message.media_url ? normalizeMediaUrl(message.media_url) : null;
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {fallbackMediaSrc && (
+            <img 
+              src={fallbackMediaSrc} 
+              alt="Template Header" 
+              onClick={() => onImageClick?.({ url: fallbackMediaSrc, type: 'image' })}
+              className="w-full rounded-md object-contain cursor-pointer hover:opacity-95 transition-opacity" 
+              style={{ maxHeight: "320px", width: "100%", height: "auto", objectFit: "contain" }} 
+              title="Click to view full image"
+            />
+          )}
+          <div className="message-text" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ fontSize: "12px", background: "rgba(37, 211, 102, 0.12)", color: "#128C7E", padding: "3px 10px", borderRadius: "12px", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+              📋 Template: {templateName}
+            </span>
+          </div>
+        </div>
+      );
     }
 
     const header = template.components?.find(c => c.type === "HEADER");
