@@ -105,11 +105,12 @@ export const getTemplates = () => api.get("/api/templates");
 
 
 
-export const getMedia = () => api.get("/api/media");
+export const getMedia = () => api.get("/api/media", { timeout: 45000 });
 
 export const uploadMedia = (formData) =>
   api.post("/api/media", formData, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
   });
 
 export const deleteMedia = (id) => api.delete(`/api/media/${id}`);

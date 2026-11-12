@@ -34,6 +34,15 @@ export default function MediaLibraryPage() {
     const file = e.target.files[0];
     if (!file) return;
 
+    const isVideo = file.type.startsWith("video/");
+    const maxBytes = isVideo ? 16 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      const limitLabel = isVideo ? "16MB" : "5MB";
+      showError(`File "${file.name}" is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Max allowed is ${limitLabel}.`);
+      e.target.value = null;
+      return;
+    }
+
     try {
       setUploading(true);
       const formData = new FormData();
@@ -43,7 +52,17 @@ export default function MediaLibraryPage() {
       showSuccess(`File "${file.name}" uploaded successfully to media storage.`);
       await fetchMedia();
     } catch (err) {
-      showError(err.response?.data?.error || "Failed to upload media.");
+      let msg = err.response?.data?.error || err.response?.data?.message;
+      if (!msg) {
+        if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+          msg = "Upload timed out. Please try a smaller file or check your internet connection.";
+        } else if (err.message) {
+          msg = `Upload failed: ${err.message}`;
+        } else {
+          msg = "Failed to upload media.";
+        }
+      }
+      showError(msg);
       console.error(err);
     } finally {
       setUploading(false);
