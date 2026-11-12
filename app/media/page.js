@@ -34,7 +34,7 @@ export default function MediaLibraryPage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const isVideo = file.type.startsWith("video/");
+    const isVideo = file.type.startsWith("video/") || /\.(mp4|mov|3gp|avi|mkv|webm)$/i.test(file.name);
     const maxBytes = isVideo ? 16 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxBytes) {
       const limitLabel = isVideo ? "16MB" : "5MB";

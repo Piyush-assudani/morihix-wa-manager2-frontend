@@ -72,6 +72,7 @@ export const sendMedia = (contactId, file) => {
   formData.append("file", file);
   return api.post(`/api/messages/${contactId}/media`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
   });
 };
 
